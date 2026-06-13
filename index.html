@@ -6,7 +6,6 @@
     <title>Notepad</title>
     <style>
         :root {
-            /* Windows 11 Dark Mode Palette - Obsidian Accent */
             --bg-body: #272727;
             --bg-sidebar: #1c1c1c;
             --bg-header: #1c1c1c;
@@ -15,7 +14,7 @@
             --text-secondary: #999999;
             --item-hover: #2d2d2d;
             --item-active: #333333;
-            --accent: #7a3ce8; /* Obsidian Purple */
+            --accent: #7a3ce8;
             --code-bg: #1e1e1e;
             --danger: #ff4c4c;
         }
@@ -33,13 +32,11 @@
 
         .app-container { display: flex; height: 100%; }
 
-        /* Custom Scrollbars */
         ::-webkit-scrollbar { width: 14px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background-color: #555; border: 4px solid var(--bg-body); border-radius: 8px; }
         ::-webkit-scrollbar-thumb:hover { background-color: #777; }
 
-        /* Sidebar Styling */
         .sidebar {
             width: 260px;
             background-color: var(--bg-sidebar);
@@ -68,12 +65,10 @@
         .note-item-title { font-size: 14px; font-weight: 400; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .note-item-preview { font-size: 12px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* Tag Badges in Sidebar */
         .note-item-tags { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
         .tag-badge { font-size: 10px; background-color: var(--border-color); color: var(--text-secondary); padding: 2px 6px; border-radius: 10px; border: 1px solid transparent; }
         .notes-list li.active .tag-badge { border-color: var(--accent); color: var(--accent); background: transparent; }
 
-        /* Custom Checkbox for Bulk Mode */
         .note-checkbox { display: none; width: 16px; height: 16px; border: 1.5px solid var(--text-secondary); border-radius: 3px; background: transparent; cursor: pointer; position: relative; appearance: none; outline: none; flex-shrink: 0; margin-top: 2px; }
         .note-checkbox:checked { background-color: var(--accent); border-color: var(--accent); }
         .note-checkbox:checked::after { content: ''; position: absolute; left: 4px; top: 1px; width: 4px; height: 8px; border: solid #000; border-width: 0 2px 2px 0; transform: rotate(45deg); }
@@ -82,18 +77,14 @@
         .bulk-footer { display: none; padding: 12px; background-color: var(--bg-header); border-top: 1px solid var(--border-color); flex-direction: column; gap: 8px; }
         .bulk-mode .bulk-footer { display: flex; }
         .bulk-btn { width: 100%; padding: 8px; border-radius: 4px; border: none; font-size: 13px; cursor: pointer; font-weight: 500; text-align: center; }
-        .bulk-btn-primary { background-color: var(--accent); color: #ffffff; } /* Kept text white for contrast against purple */
-        .bulk-btn-primary:hover { opacity: 0.9; }
         .bulk-btn-secondary { background: transparent; color: var(--text-primary); border: 1px solid var(--border-color); }
         .bulk-btn-secondary:hover { background-color: var(--item-hover); }
 
-        /* Auth Section */
         .auth-footer { padding: 12px; background-color: var(--bg-header); border-top: 1px solid var(--border-color); }
         .bulk-mode ~ .auth-footer { display: none; }
         .auth-btn { width: 100%; padding: 8px; background: transparent; border: 1px solid var(--accent); color: var(--accent); border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s; }
         .auth-btn:hover { background: var(--accent); color: #ffffff; }
 
-        /* Editor Styling */
         .editor-container { flex: 1; display: flex; flex-direction: column; min-width: 0; background-color: var(--bg-body); }
         .editor-header { padding: 8px 16px; background-color: var(--bg-header); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 12px; height: 48px; }
         #note-title { flex: 1; font-size: 14px; font-weight: 400; border: none; outline: none; background: transparent; color: var(--text-primary); font-family: inherit; }
@@ -101,13 +92,12 @@
 
         .editor-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 
-        /* Formatting Toolbar */
-        .format-toolbar { display: flex; gap: 4px; padding: 8px 16px; border-bottom: 1px solid var(--border-color); background-color: var(--bg-body); }
+        .format-toolbar { display: flex; gap: 4px; padding: 8px 16px; border-bottom: 1px solid var(--border-color); background-color: var(--bg-body); align-items: center; }
         .format-toolbar .icon-btn { width: 28px; height: 28px; color: var(--text-secondary); }
         .format-toolbar .icon-btn:hover { color: var(--text-primary); background-color: var(--item-hover); }
+        .format-toolbar .icon-btn.active { color: var(--accent); background-color: var(--item-active); }
         .format-toolbar .icon-btn svg { width: 14px; height: 14px; }
 
-        /* Tags Dropdown UI */
         .tag-dropdown-container { position: relative; display: inline-block; }
         .tag-dropdown {
             position: absolute; top: 100%; left: 0; margin-top: 8px; background-color: var(--bg-header);
@@ -125,13 +115,11 @@
             border-radius: 4px; cursor: pointer; font-size: 13px; color: var(--text-primary);
         }
         .tag-list-ui li:hover { background-color: var(--item-hover); }
-        /* Updated background color to use Obsidian purple RGB (122, 60, 232) */
         .tag-list-ui li.applied { color: var(--accent); font-weight: 500; background-color: rgba(122, 60, 232, 0.1); }
         .tag-list-ui .delete-tag-btn { background: transparent; border: none; color: var(--text-secondary); cursor: pointer; width: 20px; height: 20px; border-radius: 4px; display: flex; align-items: center; justify-content: center; opacity: 0; }
         .tag-list-ui li:hover .delete-tag-btn { opacity: 1; }
         .tag-list-ui .delete-tag-btn:hover { color: var(--danger); background: rgba(255, 76, 76, 0.1); }
 
-        /* Rich Text Editor Content */
         #note-content { flex: 1; padding: 24px 32px; font-size: 15px; line-height: 1.6; outline: none; overflow-y: auto; color: var(--text-primary); }
         #note-content:empty:before { content: attr(data-placeholder); color: var(--text-secondary); pointer-events: none; display: block; }
         #note-content h1, #note-content h2, #note-content h3 { margin-top: 24px; margin-bottom: 12px; font-weight: 600; }
@@ -146,10 +134,50 @@
         #note-content blockquote { border-left: 4px solid var(--accent); padding-left: 16px; color: var(--text-secondary); margin-bottom: 16px; background-color: rgba(255, 255, 255, 0.03); padding-top: 8px; padding-bottom: 8px; border-radius: 0 4px 4px 0; }
         #note-content code { background-color: var(--code-bg); padding: 2px 6px; border-radius: 4px; font-family: ui-monospace, "Cascadia Code", "Segoe UI Mono", monospace; font-size: 13.5px; border: 1px solid var(--border-color); }
 
-        /* Buttons */
         .icon-btn { background: transparent; border: none; cursor: pointer; color: var(--text-primary); display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 4px; transition: background-color 0.1s; }
         .icon-btn:hover { background-color: var(--item-hover); }
         .icon-btn svg { width: 16px; height: 16px; stroke-width: 1.5; }
+
+        /* Link Popup */
+        .link-popup {
+            position: absolute;
+            z-index: 200;
+            background: var(--bg-header);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 12px;
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            width: 260px;
+        }
+        .link-popup.visible { display: flex; }
+        .link-popup input {
+            background: var(--bg-body);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 6px 8px;
+            border-radius: 4px;
+            font-size: 13px;
+            outline: none;
+        }
+        .link-popup input:focus { border-color: var(--accent); }
+        .link-popup-actions { display: flex; gap: 6px; justify-content: flex-end; }
+        .link-popup-actions button {
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .link-popup-actions button.cancel {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
     </style>
 </head>
 <body>
@@ -176,7 +204,6 @@
             <ul id="notes-list" class="notes-list"></ul>
 
             <div class="bulk-footer">
-                <button id="export-selected-btn" class="bulk-btn bulk-btn-primary">Download Selected (.md)</button>
                 <button id="cancel-bulk-btn" class="bulk-btn bulk-btn-secondary">Cancel</button>
             </div>
 
@@ -198,7 +225,7 @@
                 
                 <div style="flex: 1"></div>
 
-                <button id="export-single-btn" class="icon-btn" title="Export Current Note to Markdown (.md)">
+                <button id="export-single-btn" class="icon-btn" title="Export Current Note / Export Selected">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v4"></path>
                         <polyline points="7 10 12 15 17 10"></polyline>
@@ -232,9 +259,6 @@
                     <button class="icon-btn format-btn" data-command="formatBlock" data-value="BLOCKQUOTE" title="Quote">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"></path><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"></path></svg>
                     </button>
-                    <button class="icon-btn format-btn" data-command="insertHTML" data-is-code="true" title="Code">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
-                    </button>
                     <div style="width: 1px; background: var(--border-color); margin: 4px 6px;"></div>
                     <button class="icon-btn format-btn" data-command="createLink" title="Link (Cmd/Ctrl + K)">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
@@ -266,12 +290,21 @@
         </main>
     </div>
 
+    <!-- Custom Link Popup -->
+    <div id="link-popup" class="link-popup">
+        <input type="text" id="link-text-input" placeholder="Link text">
+        <input type="text" id="link-url-input" placeholder="URL (https://...)">
+        <div class="link-popup-actions">
+            <button id="insert-link-btn">Insert</button>
+            <button id="cancel-link-btn" class="cancel">Cancel</button>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, deleteDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAKLsyLuK6q8dgnj5TqyjE-OjxaifDjHCk",
             authDomain: "notepad-eac9c.firebaseapp.com",
@@ -294,55 +327,39 @@
             const noteTitleInput = document.getElementById('note-title');
             const noteContentEl = document.getElementById('note-content');
             const formatBtns = document.querySelectorAll('.format-btn');
-            
             const exportSingleBtn = document.getElementById('export-single-btn');
             const bulkModeBtn = document.getElementById('bulk-mode-btn');
             const cancelBulkBtn = document.getElementById('cancel-bulk-btn');
-            const exportSelectedBtn = document.getElementById('export-selected-btn');
             const loginBtn = document.getElementById('login-btn');
-
-            // Tags UI Elements
             const tagMenuBtn = document.getElementById('tag-menu-btn');
             const tagDropdown = document.getElementById('tag-dropdown');
             const tagListUI = document.getElementById('tag-list-ui');
             const newTagInput = document.getElementById('new-tag-input');
             const addTagSubmit = document.getElementById('add-tag-submit');
 
+            // Link popup elements
+            const linkPopup = document.getElementById('link-popup');
+            const linkTextInput = document.getElementById('link-text-input');
+            const linkUrlInput = document.getElementById('link-url-input');
+            const insertLinkBtn = document.getElementById('insert-link-btn');
+            const cancelLinkBtn = document.getElementById('cancel-link-btn');
+
             let notes = JSON.parse(localStorage.getItem('win11_richtext_notes')) || [];
-            
-            // Replaced default tags with your custom comprehensive list
             let globalTags = JSON.parse(localStorage.getItem('win11_richtext_global_tags')) || [
-                'Content/Characters',
-                'Content/Dialogues',
-                'Content/Funny-Words',
-                'Content/Names',
-                'Content/Posts',
-                'Content/Quirks',
-                'Content/Scenes',
-                'Content/Signature-Dialogues',
-                'Content/Topics',
-                'General/Marketing',
-                'General/Editing',
-                'General/Important',
-                'General/Improvement-Corrections',
-                'General/Life-Lessions',
-                'General/Music-Sources',
-                'General/Read-Later',
-                'General/Script-Writing',
-                'General/Strategy',
-                'General/Things-I-Love-Doing',
-                'General/Thumbnail-Title',
-                'General/Tips'
+                'Content/Characters','Content/Dialogues','Content/Funny-Words','Content/Names','Content/Posts',
+                'Content/Quirks','Content/Scenes','Content/Signature-Dialogues','Content/Topics','General/Marketing',
+                'General/Editing','General/Important','General/Improvement-Corrections','General/Life-Lessions',
+                'General/Music-Sources','General/Read-Later','General/Script-Writing','General/Strategy',
+                'General/Things-I-Love-Doing','General/Thumbnail-Title','General/Tips'
             ];
-            
             let activeNoteId = null;
             let isBulkMode = false;
             let selectedNotesMap = {};
             let syncTimeoutId = null;
             let unsubscribeSnapshot = null;
-            let lastKeyWasEnter = false; // Double Enter state tracker
+            let lastKeyWasEnter = false;
 
-            // --- Tags Logic ---
+            // ---------- Tags Logic ----------
             tagMenuBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 tagDropdown.classList.toggle('visible');
@@ -367,46 +384,35 @@
                     const li = document.createElement('li');
                     const isApplied = activeNoteTags.includes(tag);
                     if (isApplied) li.classList.add('applied');
-
                     li.innerHTML = `
                         <span class="tag-name" style="flex:1;">${isApplied ? '✓ ' : ''}${tag}</span>
                         <button class="delete-tag-btn" title="Delete tag globally">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                         </button>
                     `;
-
                     li.querySelector('.tag-name').addEventListener('click', () => {
                         if (!activeNote) return;
                         if (!activeNote.tags) activeNote.tags = [];
-                        
-                        if (isApplied) {
-                            activeNote.tags = activeNote.tags.filter(t => t !== tag);
-                        } else {
-                            activeNote.tags.push(tag);
-                        }
-                        
+                        if (isApplied) activeNote.tags = activeNote.tags.filter(t => t !== tag);
+                        else activeNote.tags.push(tag);
                         saveToStorage(); 
                         renderTagDropdown(); 
                     });
-
                     li.querySelector('.delete-tag-btn').addEventListener('click', async (e) => {
                         e.stopPropagation();
                         if (confirm(`Delete the tag "${tag}" from ALL notes?`)) {
                             globalTags = globalTags.filter(t => t !== tag);
                             localStorage.setItem('win11_richtext_global_tags', JSON.stringify(globalTags));
-                            
                             notes.forEach(n => {
                                 if (n.tags && n.tags.includes(tag)) {
                                     n.tags = n.tags.filter(t => t !== tag);
                                     debouncedCloudSave(n, 0); 
                                 }
                             });
-                            
                             saveToStorage();
                             renderTagDropdown();
                         }
                     });
-
                     tagListUI.appendChild(li);
                 });
             }
@@ -425,73 +431,52 @@
                 if (e.key === 'Enter') addTagSubmit.click();
             });
 
-            // --- Firebase Real-Time Sync Logic ---
+            // ---------- Firebase Sync ----------
             function debouncedCloudSave(note, delay = 1000) {
                 if (!auth.currentUser) return; 
-                
                 clearTimeout(syncTimeoutId);
                 syncTimeoutId = setTimeout(async () => {
                     try {
                         const noteRef = doc(db, "users", auth.currentUser.uid, "notes", note.id);
                         await setDoc(noteRef, note);
                         console.log("Auto-saved to cloud");
-                    } catch (e) {
-                        console.error("Error saving to cloud:", e);
-                    }
+                    } catch (e) { console.error("Error saving to cloud:", e); }
                 }, delay); 
             }
 
             function listenToCloud() {
                 if (!auth.currentUser) return;
-
                 if (unsubscribeSnapshot) unsubscribeSnapshot();
-
                 const notesRef = collection(db, "users", auth.currentUser.uid, "notes");
-                
                 unsubscribeSnapshot = onSnapshot(notesRef, (querySnapshot) => {
                     if (querySnapshot.metadata.hasPendingWrites) return; 
-
                     const cloudNotes = [];
-                    querySnapshot.forEach((doc) => {
-                        cloudNotes.push(doc.data());
-                    });
-
+                    querySnapshot.forEach((doc) => cloudNotes.push(doc.data()));
                     if (cloudNotes.length > 0) {
                         notes = cloudNotes.sort((a, b) => b.timestamp - a.timestamp);
                         localStorage.setItem('win11_richtext_notes', JSON.stringify(notes));
-                        
                         renderNotesList();
-
                         const activeCloudNote = notes.find(n => n.id === activeNoteId);
-                        
                         if (!activeCloudNote) {
                             activeNoteId = notes[0].id;
                             loadActiveNote();
-                        } else {
-                            if (noteContentEl.innerHTML !== activeCloudNote.content || 
-                                noteTitleInput.value !== activeCloudNote.title) {
-                                loadActiveNote();
-                            }
+                        } else if (noteContentEl.innerHTML !== activeCloudNote.content || noteTitleInput.value !== activeCloudNote.title) {
+                            loadActiveNote();
                         }
                     } else {
                         notes = [];
                         renderNotesList();
                     }
-                }, (error) => {
-                    console.error("Real-time sync error:", error);
-                });
+                }, (error) => console.error("Real-time sync error:", error));
             }
 
             async function deleteFromCloud(noteId) {
                 if (!auth.currentUser) return;
-                try {
-                    await deleteDoc(doc(db, "users", auth.currentUser.uid, "notes", noteId));
-                } catch (e) {
-                    console.error("Error deleting from cloud:", e);
-                }
+                try { await deleteDoc(doc(db, "users", auth.currentUser.uid, "notes", noteId)); }
+                catch (e) { console.error("Error deleting from cloud:", e); }
             }
 
-            // --- Authentication Actions ---
+            // ---------- Auth ----------
             loginBtn.addEventListener('click', async () => {
                 if (auth.currentUser) {
                     alert("Already logged in as: " + auth.currentUser.email);
@@ -503,25 +488,22 @@
                     try {
                         await signInWithEmailAndPassword(auth, email, password);
                         alert("Logged in successfully! Activating real-time sync...");
-                    } catch (error) {
-                        alert("Login failed: " + error.message);
-                    }
+                    } catch (error) { alert("Login failed: " + error.message); }
                 }
             });
 
             onAuthStateChanged(auth, (user) => {
                 if (user) {
                     loginBtn.textContent = "Synced with Cloud";
-                    loginBtn.style.color = "#7a3ce8"; // Matched synced state to new accent color
+                    loginBtn.style.color = "#7a3ce8";
                     listenToCloud(); 
                 }
             });
 
-            // --- App Core Logic ---
+            // ---------- Core Note Functions ----------
             function init() {
-                if (notes.length === 0) {
-                    createNewNote();
-                } else {
+                if (notes.length === 0) createNewNote();
+                else {
                     activeNoteId = notes[0].id;
                     renderNotesList();
                     loadActiveNote();
@@ -531,21 +513,12 @@
             function saveToStorage() {
                 localStorage.setItem('win11_richtext_notes', JSON.stringify(notes));
                 renderNotesList();
-                
                 const activeNote = notes.find(n => n.id === activeNoteId);
-                if (activeNote) {
-                    debouncedCloudSave(activeNote);
-                }
+                if (activeNote) debouncedCloudSave(activeNote);
             }
 
             function createNewNote() {
-                const newNote = {
-                    id: Date.now().toString(),
-                    title: '',
-                    content: '',
-                    timestamp: Date.now(),
-                    tags: [] 
-                };
+                const newNote = { id: Date.now().toString(), title: '', content: '', timestamp: Date.now(), tags: [] };
                 notes.unshift(newNote);
                 activeNoteId = newNote.id;
                 saveToStorage();
@@ -580,9 +553,7 @@
 
             function deleteActiveNote() {
                 if (!activeNoteId) return;
-                
                 deleteFromCloud(activeNoteId);
-                
                 notes = notes.filter(n => n.id !== activeNoteId);
                 activeNoteId = notes.length > 0 ? notes[0].id : null;
                 saveToStorage();
@@ -602,11 +573,9 @@
                 sortedNotes.forEach(note => {
                     const li = document.createElement('li');
                     li.className = note.id === activeNoteId ? 'active' : '';
-                    
                     const titleText = note.title.trim() || 'Untitled';
                     const previewText = extractText(note.content).trim() || 'Empty note';
                     const isChecked = selectedNotesMap[note.id] ? 'checked' : '';
-                    
                     const tagsHtml = (note.tags || []).map(t => `<span class="tag-badge">${t}</span>`).join('');
 
                     li.innerHTML = `
@@ -635,7 +604,7 @@
                 });
             }
 
-            // --- HTML to Markdown Conversion Parsing ---
+            // ---------- Export ----------
             function convertHtmlToMarkdown(html) {
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = html;
@@ -678,16 +647,12 @@
             function downloadMarkdownFile(title, htmlContent, tagsArray = []) {
                 const markdownText = convertHtmlToMarkdown(htmlContent);
                 const filename = (title.trim() || 'Untitled') + '.md';
-                
-                // --- Obsidian YAML Frontmatter Integration ---
                 let finalExportText = markdownText;
-                
                 if (tagsArray && tagsArray.length > 0) {
                     const yamlTags = tagsArray.map(tag => `  - ${tag}`).join('\n');
                     const frontmatter = `---\ntags:\n${yamlTags}\n---\n\n`;
                     finalExportText = frontmatter + markdownText;
                 }
-
                 const blob = new Blob([finalExportText], { type: 'text/markdown;charset=utf-8;' });
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
@@ -697,14 +662,12 @@
                 document.body.removeChild(link);
             }
 
-            // --- Bulk Export Action Management ---
             function triggerBulkExport() {
                 const targetIds = Object.keys(selectedNotesMap).filter(id => selectedNotesMap[id]);
                 if (targetIds.length === 0) {
                     alert('Please select at least one note to export.');
                     return;
                 }
-
                 targetIds.forEach((id, index) => {
                     const targetNote = notes.find(n => n.id === id);
                     if (targetNote) {
@@ -713,7 +676,6 @@
                         }, index * 150);
                     }
                 });
-
                 exitBulkMode();
             }
 
@@ -731,43 +693,60 @@
                 renderNotesList();
             }
 
-            // --- Event Listeners ---
+            // ---------- Toolbar Active State ----------
+            function updateToolbarState() {
+                formatBtns.forEach(btn => {
+                    const command = btn.getAttribute('data-command');
+                    let isActive = false;
+                    if (command === 'bold') isActive = document.queryCommandState('bold');
+                    else if (command === 'italic') isActive = document.queryCommandState('italic');
+                    else if (command === 'strikeThrough') isActive = document.queryCommandState('strikeThrough');
+                    else if (command === 'insertUnorderedList') isActive = document.queryCommandState('insertUnorderedList');
+                    else if (command === 'formatBlock') {
+                        const value = btn.getAttribute('data-value') || '';
+                        const currentFormat = document.queryCommandValue('formatBlock');
+                        isActive = (currentFormat && currentFormat.toLowerCase() === value.toLowerCase());
+                    }
+                    if (isActive) btn.classList.add('active');
+                    else btn.classList.remove('active');
+                });
+            }
+
+            document.addEventListener('selectionchange', () => {
+                if (document.activeElement === noteContentEl) {
+                    updateToolbarState();
+                }
+            });
+
+            // ---------- Event Listeners ----------
             toggleSidebarBtn.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
             addNoteBtn.addEventListener('click', createNewNote);
             deleteNoteBtn.addEventListener('click', deleteActiveNote);
-            
             noteTitleInput.addEventListener('input', updateActiveNote);
             noteContentEl.addEventListener('input', updateActiveNote);
 
+            // Export button (single or bulk)
             exportSingleBtn.addEventListener('click', () => {
-                const activeNote = notes.find(n => n.id === activeNoteId);
-                if (activeNote) downloadMarkdownFile(activeNote.title, activeNote.content, activeNote.tags);
+                if (isBulkMode) {
+                    triggerBulkExport();
+                } else {
+                    const activeNote = notes.find(n => n.id === activeNoteId);
+                    if (activeNote) downloadMarkdownFile(activeNote.title, activeNote.content, activeNote.tags);
+                }
             });
 
             bulkModeBtn.addEventListener('click', () => {
                 if (isBulkMode) exitBulkMode(); else enterBulkMode();
             });
             cancelBulkBtn.addEventListener('click', exitBulkMode);
-            exportSelectedBtn.addEventListener('click', triggerBulkExport);
 
-            // Rich Text Formatting Logic
+            // Formatting toolbar (except link, handled separately)
             formatBtns.forEach(btn => {
+                if (btn.getAttribute('data-command') === 'createLink') return; // Handled below
                 btn.addEventListener('click', (e) => {
                     e.preventDefault();
                     const command = btn.getAttribute('data-command');
                     let value = btn.getAttribute('data-value') || null;
-
-                    if (command === 'createLink') {
-                        const url = prompt('Enter link URL:');
-                        if (!url) return;
-                        value = url;
-                    }
-
-                    if (btn.getAttribute('data-is-code')) {
-                        const selection = window.getSelection();
-                        if (!selection.toString()) return; 
-                        value = `<code>${selection.toString()}</code>`;
-                    }
 
                     if (command === 'formatBlock') {
                         const currentFormat = document.queryCommandValue('formatBlock');
@@ -779,7 +758,166 @@
                     document.execCommand(command, false, value);
                     updateActiveNote();
                     noteContentEl.focus();
+                    updateToolbarState();
                 });
+            });
+
+            // ---------- Custom Link Popup ----------
+            function showLinkPopup() {
+                const sel = window.getSelection();
+                const selectedText = sel.toString();
+                linkTextInput.value = selectedText || '';
+                linkUrlInput.value = '';
+                // Position near the link button
+                const linkBtn = document.querySelector('[data-command="createLink"]');
+                const rect = linkBtn.getBoundingClientRect();
+                linkPopup.style.top = (rect.bottom + 8) + 'px';
+                linkPopup.style.left = (rect.left) + 'px';
+                linkPopup.classList.add('visible');
+                linkTextInput.focus();
+            }
+
+            function hideLinkPopup() {
+                linkPopup.classList.remove('visible');
+            }
+
+            function insertLink() {
+                const url = linkUrlInput.value.trim();
+                const text = linkTextInput.value.trim();
+                if (!url || !text) {
+                    alert('Please enter both link text and URL.');
+                    return;
+                }
+
+                const sel = window.getSelection();
+                if (sel.rangeCount) {
+                    const range = sel.getRangeAt(0);
+                    // If there's a selection, remove it and insert new link
+                    if (!range.collapsed) {
+                        range.deleteContents();
+                    }
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.textContent = text;
+                    range.insertNode(link);
+                    // Move cursor after the link
+                    range.setStartAfter(link);
+                    range.collapse(true);
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                } else {
+                    // Fallback: insert at end
+                    noteContentEl.focus();
+                    document.execCommand('insertHTML', false, `<a href="${url}">${text}</a>`);
+                }
+                updateActiveNote();
+                hideLinkPopup();
+            }
+
+            document.querySelector('[data-command="createLink"]').addEventListener('click', (e) => {
+                e.preventDefault();
+                if (linkPopup.classList.contains('visible')) {
+                    hideLinkPopup();
+                } else {
+                    showLinkPopup();
+                }
+            });
+
+            insertLinkBtn.addEventListener('click', insertLink);
+            cancelLinkBtn.addEventListener('click', hideLinkPopup);
+
+            // Hide popup when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('#link-popup') && !e.target.closest('[data-command="createLink"]')) {
+                    hideLinkPopup();
+                }
+            });
+
+            // Allow Enter key in link popup to submit
+            linkUrlInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') insertLink();
+            });
+            linkTextInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') linkUrlInput.focus();
+            });
+
+            // ---------- Blockquote Helpers & Keyboard ----------
+            function getBlockquoteAncestor() {
+                const sel = window.getSelection();
+                if (!sel.rangeCount) return null;
+                let node = sel.anchorNode;
+                while (node && node !== noteContentEl) {
+                    if (node.nodeName === 'BLOCKQUOTE') return node;
+                    node = node.parentNode;
+                }
+                return null;
+            }
+
+            function getCurrentBlockElement(container) {
+                const sel = window.getSelection();
+                if (!sel.rangeCount) return null;
+                let node = sel.anchorNode;
+                while (node && node !== container) {
+                    if (/^(P|DIV|H[1-6]|BLOCKQUOTE)$/.test(node.nodeName)) {
+                        return node;
+                    }
+                    node = node.parentNode;
+                }
+                return null;
+            }
+
+            noteContentEl.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    const blockquote = getBlockquoteAncestor();
+                    if (blockquote) {
+                        e.preventDefault();
+                        if (lastKeyWasEnter) {
+                            // Double Enter → exit blockquote
+                            const sel = window.getSelection();
+                            const currentBlock = getCurrentBlockElement(blockquote);
+                            if (currentBlock && currentBlock !== blockquote && currentBlock.textContent.trim() === '') {
+                                currentBlock.parentNode.removeChild(currentBlock);
+                            }
+                            const newPara = document.createElement('p');
+                            newPara.innerHTML = '<br>';
+                            blockquote.parentNode.insertBefore(newPara, blockquote.nextSibling);
+                            const range = document.createRange();
+                            range.setStart(newPara, 0);
+                            range.collapse(true);
+                            sel.removeAllRanges();
+                            sel.addRange(range);
+                            lastKeyWasEnter = false;
+                            updateActiveNote();
+                        } else {
+                            // First Enter → add paragraph inside
+                            const sel = window.getSelection();
+                            if (sel.rangeCount) {
+                                const range = sel.getRangeAt(0);
+                                const newPara = document.createElement('p');
+                                newPara.innerHTML = '<br>';
+                                blockquote.appendChild(newPara);
+                                range.setStart(newPara, 0);
+                                range.collapse(true);
+                                sel.removeAllRanges();
+                                sel.addRange(range);
+                            }
+                            lastKeyWasEnter = true;
+                        }
+                        return;
+                    }
+                }
+
+                if (e.key !== 'Enter') lastKeyWasEnter = false;
+
+                if (e.key === 'Tab') {
+                    e.preventDefault();
+                    if (e.shiftKey) document.execCommand('outdent', false, null);
+                    else document.execCommand('indent', false, null);
+                }
+            });
+
+            noteContentEl.addEventListener('mousedown', () => {
+                lastKeyWasEnter = false;
             });
 
             noteContentEl.addEventListener("paste", function(e) {
@@ -788,45 +926,8 @@
                 document.execCommand('insertText', false, text);
             });
 
-            // Keyboard Shortcuts (Enter breakout & Tab indents)
-            noteContentEl.addEventListener('keydown', (e) => {
-                // 1. Enter Logic for Blockquote
-                if (e.key === 'Enter') {
-                    const currentFormat = document.queryCommandValue('formatBlock');
-                    if (currentFormat === 'blockquote') {
-                        e.preventDefault(); // Stop default browser splitting
-                        
-                        if (lastKeyWasEnter) {
-                            document.execCommand('formatBlock', false, 'DIV'); 
-                            lastKeyWasEnter = false; 
-                        } else {
-                            document.execCommand('insertLineBreak');
-                            lastKeyWasEnter = true; 
-                        }
-                        return;
-                    }
-                }
-
-                if (e.key !== 'Enter') {
-                    lastKeyWasEnter = false;
-                }
-
-                // 2. Create sub-bullets using Tab and Shift+Tab
-                if (e.key === 'Tab') {
-                    e.preventDefault();
-                    if (e.shiftKey) {
-                        document.execCommand('outdent', false, null);
-                    } else {
-                        document.execCommand('indent', false, null);
-                    }
-                }
-            });
-
-            noteContentEl.addEventListener('mousedown', () => {
-                lastKeyWasEnter = false;
-            });
-
             init();
+            updateToolbarState(); // initial state
         });
     </script>
 </body>
