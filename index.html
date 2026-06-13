@@ -414,7 +414,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, deleteDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         // Firebase Configuration
         const firebaseConfig = {
@@ -452,8 +452,9 @@
             let isBulkMode = false;
             let selectedNotesMap = {};
             let syncTimeoutId = null;
+            let unsubscribeSnapshot = null;
 
-            // --- Firebase Cloud Sync Logic ---
+            // --- Firebase Real-Time Sync Logic ---
             function debouncedCloudSave(note) {
                 if (!auth.currentUser) return; 
                 
@@ -469,10 +470,14 @@
                 }, 1000); 
             }
 
-            async function fetchFromCloud() {
+            function listenToCloud() {
                 if (!auth.currentUser) return;
-                try {
-                    const querySnapshot = await getDocs(collection(db, "users", auth.currentUser.uid, "notes"));
+
+                if (unsubscribeSnapshot) unsubscribeSnapshot();
+
+                const notesRef = collection(db, "users", auth.currentUser.uid, "notes");
+                
+                unsubscribeSnapshot = onSnapshot(notesRef, (querySnapshot) => {
                     const cloudNotes = [];
                     querySnapshot.forEach((doc) => {
                         cloudNotes.push(doc.data());
@@ -482,13 +487,19 @@
                         // Sort by newest and update local storage
                         notes = cloudNotes.sort((a, b) => b.timestamp - a.timestamp);
                         localStorage.setItem('win11_richtext_notes', JSON.stringify(notes));
-                        activeNoteId = notes[0].id;
+                        
                         renderNotesList();
-                        loadActiveNote();
+
+                        if (!notes.find(n => n.id === activeNoteId)) {
+                            activeNoteId = notes[0].id;
+                            loadActiveNote();
+                        } else if (document.activeElement !== noteContentEl && document.activeElement !== noteTitleInput) {
+                            loadActiveNote();
+                        }
                     }
-                } catch (e) {
-                    console.error("Error fetching from cloud:", e);
-                }
+                }, (error) => {
+                    console.error("Real-time sync error:", error);
+                });
             }
 
             async function deleteFromCloud(noteId) {
@@ -511,7 +522,7 @@
                 if (email && password) {
                     try {
                         await signInWithEmailAndPassword(auth, email, password);
-                        alert("Logged in successfully! Pulling notes...");
+                        alert("Logged in successfully! Activating real-time sync...");
                     } catch (error) {
                         alert("Login failed: " + error.message);
                     }
@@ -522,7 +533,7 @@
                 if (user) {
                     loginBtn.textContent = "Synced with Cloud";
                     loginBtn.style.color = "#4cc2ff";
-                    fetchFromCloud(); 
+                    listenToCloud(); 
                 }
             });
 
