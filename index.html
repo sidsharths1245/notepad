@@ -17,13 +17,10 @@
             --item-active: #333333;
             --accent: #4cc2ff;
             --code-bg: #1e1e1e;
+            --danger: #ff4c4c;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
@@ -34,26 +31,13 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        .app-container {
-            display: flex;
-            height: 100%;
-        }
+        .app-container { display: flex; height: 100%; }
 
         /* Custom Scrollbars */
-        ::-webkit-scrollbar {
-            width: 14px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-            background-color: #555;
-            border: 4px solid var(--bg-body);
-            border-radius: 8px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background-color: #777;
-        }
+        ::-webkit-scrollbar { width: 14px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background-color: #555; border: 4px solid var(--bg-body); border-radius: 8px; }
+        ::-webkit-scrollbar-thumb:hover { background-color: #777; }
 
         /* Sidebar Styling */
         .sidebar {
@@ -66,278 +50,90 @@
             z-index: 10;
         }
 
-        .sidebar.collapsed {
-            margin-left: -260px;
-        }
+        .sidebar.collapsed { margin-left: -260px; }
 
-        .sidebar-header {
-            padding: 12px 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        .sidebar-header { padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; }
+        .sidebar-header h2 { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+        .sidebar-header-actions { display: flex; gap: 4px; }
 
-        .sidebar-header h2 {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .sidebar-header-actions {
-            display: flex;
-            gap: 4px;
-        }
-
-        .notes-list {
-            list-style: none;
-            overflow-y: auto;
-            flex: 1;
-            padding: 0 8px 8px 8px;
-        }
-
+        .notes-list { list-style: none; overflow-y: auto; flex: 1; padding: 0 8px 8px 8px; }
         .notes-list li {
-            padding: 10px 12px;
-            margin-bottom: 2px;
-            cursor: pointer;
-            border-radius: 4px;
-            border-left: 3px solid transparent;
-            transition: background-color 0.1s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            padding: 10px 12px; margin-bottom: 2px; cursor: pointer; border-radius: 4px;
+            border-left: 3px solid transparent; transition: background-color 0.1s; display: flex; gap: 10px;
         }
+        .notes-list li:hover { background-color: var(--item-hover); }
+        .notes-list li.active { background-color: var(--item-active); border-left: 3px solid var(--accent); }
 
-        .notes-list li:hover {
-            background-color: var(--item-hover);
-        }
+        .note-item-info { flex: 1; min-width: 0; }
+        .note-item-title { font-size: 14px; font-weight: 400; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .note-item-preview { font-size: 12px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        .notes-list li.active {
-            background-color: var(--item-active);
-            border-left: 3px solid var(--accent);
-        }
-
-        .note-item-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .note-item-title {
-            font-size: 14px;
-            font-weight: 400;
-            margin-bottom: 4px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .note-item-preview {
-            font-size: 12px;
-            color: var(--text-secondary);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+        /* Tag Badges in Sidebar */
+        .note-item-tags { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
+        .tag-badge { font-size: 10px; background-color: var(--border-color); color: var(--text-secondary); padding: 2px 6px; border-radius: 10px; border: 1px solid transparent; }
+        .notes-list li.active .tag-badge { border-color: var(--accent); color: var(--accent); background: transparent; }
 
         /* Custom Checkbox for Bulk Mode */
-        .note-checkbox {
-            display: none;
-            width: 16px;
-            height: 16px;
-            border: 1.5px solid var(--text-secondary);
-            border-radius: 3px;
-            background: transparent;
-            cursor: pointer;
-            position: relative;
-            appearance: none;
-            outline: none;
-            flex-shrink: 0;
-        }
+        .note-checkbox { display: none; width: 16px; height: 16px; border: 1.5px solid var(--text-secondary); border-radius: 3px; background: transparent; cursor: pointer; position: relative; appearance: none; outline: none; flex-shrink: 0; margin-top: 2px; }
+        .note-checkbox:checked { background-color: var(--accent); border-color: var(--accent); }
+        .note-checkbox:checked::after { content: ''; position: absolute; left: 4px; top: 1px; width: 4px; height: 8px; border: solid #000; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+        
+        .bulk-mode .note-checkbox { display: block; }
+        .bulk-footer { display: none; padding: 12px; background-color: var(--bg-header); border-top: 1px solid var(--border-color); flex-direction: column; gap: 8px; }
+        .bulk-mode .bulk-footer { display: flex; }
+        .bulk-btn { width: 100%; padding: 8px; border-radius: 4px; border: none; font-size: 13px; cursor: pointer; font-weight: 500; text-align: center; }
+        .bulk-btn-primary { background-color: var(--accent); color: #000000; }
+        .bulk-btn-primary:hover { opacity: 0.9; }
+        .bulk-btn-secondary { background: transparent; color: var(--text-primary); border: 1px solid var(--border-color); }
+        .bulk-btn-secondary:hover { background-color: var(--item-hover); }
 
-        .note-checkbox:checked {
-            background-color: var(--accent);
-            border-color: var(--accent);
-        }
-
-        .note-checkbox:checked::after {
-            content: '';
-            position: absolute;
-            left: 4px;
-            top: 1px;
-            width: 4px;
-            height: 8px;
-            border: solid #000;
-            border-width: 0 2px 2px 0;
-            transform: rotate(45deg);
-        }
-
-        /* Bulk Selection Mode Active State */
-        .bulk-mode .note-checkbox {
-            display: block;
-        }
-
-        .bulk-footer {
-            display: none;
-            padding: 12px;
-            background-color: var(--bg-header);
-            border-top: 1px solid var(--border-color);
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .bulk-mode .bulk-footer {
-            display: flex;
-        }
-
-        .bulk-btn {
-            width: 100%;
-            padding: 8px;
-            border-radius: 4px;
-            border: none;
-            font-size: 13px;
-            cursor: pointer;
-            font-weight: 500;
-            text-align: center;
-        }
-
-        .bulk-btn-primary {
-            background-color: var(--accent);
-            color: #000000;
-        }
-
-        .bulk-btn-primary:hover {
-            opacity: 0.9;
-        }
-
-        .bulk-btn-secondary {
-            background: transparent;
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-        }
-
-        .bulk-btn-secondary:hover {
-            background-color: var(--item-hover);
-        }
-
-        /* Auth Section Styling */
-        .auth-footer {
-            padding: 12px;
-            background-color: var(--bg-header);
-            border-top: 1px solid var(--border-color);
-        }
-
-        .bulk-mode ~ .auth-footer { 
-            display: none; 
-        }
-
-        .auth-btn {
-            width: 100%;
-            padding: 8px;
-            background: transparent;
-            border: 1px solid var(--accent);
-            color: var(--accent);
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-
-        .auth-btn:hover { 
-            background: var(--accent); 
-            color: #000; 
-        }
+        /* Auth Section */
+        .auth-footer { padding: 12px; background-color: var(--bg-header); border-top: 1px solid var(--border-color); }
+        .bulk-mode ~ .auth-footer { display: none; }
+        .auth-btn { width: 100%; padding: 8px; background: transparent; border: 1px solid var(--accent); color: var(--accent); border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s; }
+        .auth-btn:hover { background: var(--accent); color: #000; }
 
         /* Editor Styling */
-        .editor-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-            background-color: var(--bg-body);
-        }
+        .editor-container { flex: 1; display: flex; flex-direction: column; min-width: 0; background-color: var(--bg-body); }
+        .editor-header { padding: 8px 16px; background-color: var(--bg-header); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 12px; height: 48px; }
+        #note-title { flex: 1; font-size: 14px; font-weight: 400; border: none; outline: none; background: transparent; color: var(--text-primary); font-family: inherit; }
+        #note-title::placeholder { color: var(--text-secondary); }
 
-        /* Command Bar (Header) */
-        .editor-header {
-            padding: 8px 16px;
-            background-color: var(--bg-header);
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            height: 48px;
-        }
-
-        #note-title {
-            flex: 1;
-            font-size: 14px;
-            font-weight: 400;
-            border: none;
-            outline: none;
-            background: transparent;
-            color: var(--text-primary);
-            font-family: inherit;
-        }
-
-        #note-title::placeholder {
-            color: var(--text-secondary);
-        }
-
-        .editor-body {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
+        .editor-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 
         /* Formatting Toolbar */
-        .format-toolbar {
-            display: flex;
-            gap: 4px;
-            padding: 8px 16px;
-            border-bottom: 1px solid var(--border-color);
-            background-color: var(--bg-body);
-        }
+        .format-toolbar { display: flex; gap: 4px; padding: 8px 16px; border-bottom: 1px solid var(--border-color); background-color: var(--bg-body); }
+        .format-toolbar .icon-btn { width: 28px; height: 28px; color: var(--text-secondary); }
+        .format-toolbar .icon-btn:hover { color: var(--text-primary); background-color: var(--item-hover); }
+        .format-toolbar .icon-btn svg { width: 14px; height: 14px; }
 
-        .format-toolbar .icon-btn {
-            width: 28px;
-            height: 28px;
-            color: var(--text-secondary);
+        /* Tags Dropdown UI */
+        .tag-dropdown-container { position: relative; display: inline-block; }
+        .tag-dropdown {
+            position: absolute; top: 100%; left: 0; margin-top: 8px; background-color: var(--bg-header);
+            border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; width: 260px;
+            z-index: 100; box-shadow: 0 8px 24px rgba(0,0,0,0.4); display: none; flex-direction: column; gap: 8px;
         }
-
-        .format-toolbar .icon-btn:hover {
-            color: var(--text-primary);
-            background-color: var(--item-hover);
+        .tag-dropdown.visible { display: flex; }
+        .tag-input-row { display: flex; gap: 4px; }
+        .tag-input-row input { flex: 1; background: var(--bg-body); border: 1px solid var(--border-color); color: var(--text-primary); padding: 6px 8px; border-radius: 4px; outline: none; font-size: 13px; }
+        .tag-input-row input:focus { border-color: var(--accent); }
+        .tag-input-row button { background: var(--accent); color: #000; border: none; border-radius: 4px; width: 28px; cursor: pointer; font-weight: bold; }
+        .tag-list-ui { list-style: none; max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; margin-top: 4px; }
+        .tag-list-ui li {
+            display: flex; justify-content: space-between; align-items: center; padding: 6px 8px;
+            border-radius: 4px; cursor: pointer; font-size: 13px; color: var(--text-primary);
         }
-
-        .format-toolbar .icon-btn svg {
-            width: 14px;
-            height: 14px;
-        }
+        .tag-list-ui li:hover { background-color: var(--item-hover); }
+        .tag-list-ui li.applied { color: var(--accent); font-weight: 500; background-color: rgba(76, 194, 255, 0.1); }
+        .tag-list-ui .delete-tag-btn { background: transparent; border: none; color: var(--text-secondary); cursor: pointer; width: 20px; height: 20px; border-radius: 4px; display: flex; align-items: center; justify-content: center; opacity: 0; }
+        .tag-list-ui li:hover .delete-tag-btn { opacity: 1; }
+        .tag-list-ui .delete-tag-btn:hover { color: var(--danger); background: rgba(255, 76, 76, 0.1); }
 
         /* Rich Text Editor Content */
-        #note-content {
-            flex: 1;
-            padding: 24px 32px;
-            font-size: 15px;
-            line-height: 1.6;
-            outline: none;
-            overflow-y: auto;
-            color: var(--text-primary);
-        }
-
-        #note-content:empty:before {
-            content: attr(data-placeholder);
-            color: var(--text-secondary);
-            pointer-events: none;
-            display: block;
-        }
-
-        /* Visual styling inside the editor */
-        #note-content h1, #note-content h2, #note-content h3 {
-            margin-top: 24px;
-            margin-bottom: 12px;
-            font-weight: 600;
-        }
+        #note-content { flex: 1; padding: 24px 32px; font-size: 15px; line-height: 1.6; outline: none; overflow-y: auto; color: var(--text-primary); }
+        #note-content:empty:before { content: attr(data-placeholder); color: var(--text-secondary); pointer-events: none; display: block; }
+        #note-content h1, #note-content h2, #note-content h3 { margin-top: 24px; margin-bottom: 12px; font-weight: 600; }
         #note-content h1:first-child, #note-content h2:first-child { margin-top: 0; }
         #note-content h1 { font-size: 24px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
         #note-content h2 { font-size: 20px; }
@@ -346,49 +142,13 @@
         #note-content a:hover { text-decoration: underline; }
         #note-content ul, #note-content ol { margin-bottom: 16px; padding-left: 24px; }
         #note-content li { margin-bottom: 4px; }
-        #note-content blockquote {
-            border-left: 4px solid var(--accent);
-            padding-left: 16px;
-            color: var(--text-secondary);
-            margin-bottom: 16px;
-            background-color: rgba(255, 255, 255, 0.03);
-            padding-top: 8px;
-            padding-bottom: 8px;
-            border-radius: 0 4px 4px 0;
-        }
-        #note-content code {
-            background-color: var(--code-bg);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: ui-monospace, "Cascadia Code", "Segoe UI Mono", monospace;
-            font-size: 13.5px;
-            border: 1px solid var(--border-color);
-        }
+        #note-content blockquote { border-left: 4px solid var(--accent); padding-left: 16px; color: var(--text-secondary); margin-bottom: 16px; background-color: rgba(255, 255, 255, 0.03); padding-top: 8px; padding-bottom: 8px; border-radius: 0 4px 4px 0; }
+        #note-content code { background-color: var(--code-bg); padding: 2px 6px; border-radius: 4px; font-family: ui-monospace, "Cascadia Code", "Segoe UI Mono", monospace; font-size: 13.5px; border: 1px solid var(--border-color); }
 
         /* Buttons */
-        .icon-btn {
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px;
-            height: 32px;
-            border-radius: 4px;
-            transition: background-color 0.1s;
-        }
-
-        .icon-btn:hover {
-            background-color: var(--item-hover);
-        }
-        
-        .icon-btn svg {
-            width: 16px;
-            height: 16px;
-            stroke-width: 1.5;
-        }
+        .icon-btn { background: transparent; border: none; cursor: pointer; color: var(--text-primary); display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 4px; transition: background-color 0.1s; }
+        .icon-btn:hover { background-color: var(--item-hover); }
+        .icon-btn svg { width: 16px; height: 16px; stroke-width: 1.5; }
     </style>
 </head>
 <body>
@@ -481,6 +241,23 @@
                     <button class="icon-btn format-btn" data-command="insertUnorderedList" title="Bulleted List">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
                     </button>
+                    <div style="width: 1px; background: var(--border-color); margin: 4px 6px;"></div>
+                    
+                    <div class="tag-dropdown-container">
+                        <button id="tag-menu-btn" class="icon-btn" title="Manage Tags">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                                <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                            </svg>
+                        </button>
+                        <div id="tag-dropdown" class="tag-dropdown">
+                            <div class="tag-input-row">
+                                <input type="text" id="new-tag-input" placeholder="Add new tag...">
+                                <button id="add-tag-submit">+</button>
+                            </div>
+                            <ul id="tag-list-ui" class="tag-list-ui"></ul>
+                        </div>
+                    </div>
                 </div>
                 
                 <div id="note-content" contenteditable="true" data-placeholder="Start typing..."></div>
@@ -503,7 +280,6 @@
             appId: "1:424898863567:web:1362a445da057cbf1ef2ba"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -524,15 +300,132 @@
             const exportSelectedBtn = document.getElementById('export-selected-btn');
             const loginBtn = document.getElementById('login-btn');
 
+            // Tags UI Elements
+            const tagMenuBtn = document.getElementById('tag-menu-btn');
+            const tagDropdown = document.getElementById('tag-dropdown');
+            const tagListUI = document.getElementById('tag-list-ui');
+            const newTagInput = document.getElementById('new-tag-input');
+            const addTagSubmit = document.getElementById('add-tag-submit');
+
             let notes = JSON.parse(localStorage.getItem('win11_richtext_notes')) || [];
+            
+            // Replaced default tags with your custom comprehensive list
+            let globalTags = JSON.parse(localStorage.getItem('win11_richtext_global_tags')) || [
+                'Content/Characters',
+                'Content/Dialogues',
+                'Content/Funny-Words',
+                'Content/Names',
+                'Content/Posts',
+                'Content/Quirks',
+                'Content/Scenes',
+                'Content/Signature-Dialogues',
+                'Content/Topics',
+                'General/Marketing',
+                'General/Editing',
+                'General/Important',
+                'General/Improvement-Corrections',
+                'General/Life-Lessions',
+                'General/Music-Sources',
+                'General/Read-Later',
+                'General/Script-Writing',
+                'General/Strategy',
+                'General/Things-I-Love-Doing',
+                'General/Thumbnail-Title',
+                'General/Tips'
+            ];
+            
             let activeNoteId = null;
             let isBulkMode = false;
             let selectedNotesMap = {};
             let syncTimeoutId = null;
             let unsubscribeSnapshot = null;
+            let lastKeyWasEnter = false; // Double Enter state tracker
+
+            // --- Tags Logic ---
+            tagMenuBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                tagDropdown.classList.toggle('visible');
+                if (tagDropdown.classList.contains('visible')) {
+                    renderTagDropdown();
+                    newTagInput.focus();
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.tag-dropdown-container')) {
+                    tagDropdown.classList.remove('visible');
+                }
+            });
+
+            function renderTagDropdown() {
+                tagListUI.innerHTML = '';
+                const activeNote = notes.find(n => n.id === activeNoteId);
+                const activeNoteTags = activeNote?.tags || [];
+
+                globalTags.forEach(tag => {
+                    const li = document.createElement('li');
+                    const isApplied = activeNoteTags.includes(tag);
+                    if (isApplied) li.classList.add('applied');
+
+                    li.innerHTML = `
+                        <span class="tag-name" style="flex:1;">${isApplied ? '✓ ' : ''}${tag}</span>
+                        <button class="delete-tag-btn" title="Delete tag globally">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </button>
+                    `;
+
+                    li.querySelector('.tag-name').addEventListener('click', () => {
+                        if (!activeNote) return;
+                        if (!activeNote.tags) activeNote.tags = [];
+                        
+                        if (isApplied) {
+                            activeNote.tags = activeNote.tags.filter(t => t !== tag);
+                        } else {
+                            activeNote.tags.push(tag);
+                        }
+                        
+                        saveToStorage(); 
+                        renderTagDropdown(); 
+                    });
+
+                    li.querySelector('.delete-tag-btn').addEventListener('click', async (e) => {
+                        e.stopPropagation();
+                        if (confirm(`Delete the tag "${tag}" from ALL notes?`)) {
+                            globalTags = globalTags.filter(t => t !== tag);
+                            localStorage.setItem('win11_richtext_global_tags', JSON.stringify(globalTags));
+                            
+                            notes.forEach(n => {
+                                if (n.tags && n.tags.includes(tag)) {
+                                    n.tags = n.tags.filter(t => t !== tag);
+                                    debouncedCloudSave(n, 0); 
+                                }
+                            });
+                            
+                            saveToStorage();
+                            renderTagDropdown();
+                        }
+                    });
+
+                    tagListUI.appendChild(li);
+                });
+            }
+
+            addTagSubmit.addEventListener('click', () => {
+                const val = newTagInput.value.trim();
+                if (val && !globalTags.includes(val)) {
+                    globalTags.push(val);
+                    localStorage.setItem('win11_richtext_global_tags', JSON.stringify(globalTags));
+                    newTagInput.value = '';
+                    renderTagDropdown();
+                }
+            });
+
+            newTagInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') addTagSubmit.click();
+            });
 
             // --- Firebase Real-Time Sync Logic ---
-            function debouncedCloudSave(note) {
+            function debouncedCloudSave(note, delay = 1000) {
                 if (!auth.currentUser) return; 
                 
                 clearTimeout(syncTimeoutId);
@@ -544,7 +437,7 @@
                     } catch (e) {
                         console.error("Error saving to cloud:", e);
                     }
-                }, 1000); 
+                }, delay); 
             }
 
             function listenToCloud() {
@@ -555,10 +448,7 @@
                 const notesRef = collection(db, "users", auth.currentUser.uid, "notes");
                 
                 unsubscribeSnapshot = onSnapshot(notesRef, (querySnapshot) => {
-                    // Ignore updates triggered by our own local typing to protect the cursor
-                    if (querySnapshot.metadata.hasPendingWrites) {
-                        return; 
-                    }
+                    if (querySnapshot.metadata.hasPendingWrites) return; 
 
                     const cloudNotes = [];
                     querySnapshot.forEach((doc) => {
@@ -566,7 +456,6 @@
                     });
 
                     if (cloudNotes.length > 0) {
-                        // Sort by newest and update local storage
                         notes = cloudNotes.sort((a, b) => b.timestamp - a.timestamp);
                         localStorage.setItem('win11_richtext_notes', JSON.stringify(notes));
                         
@@ -653,7 +542,8 @@
                     id: Date.now().toString(),
                     title: '',
                     content: '',
-                    timestamp: Date.now()
+                    timestamp: Date.now(),
+                    tags: [] 
                 };
                 notes.unshift(newNote);
                 activeNoteId = newNote.id;
@@ -714,22 +604,23 @@
                     
                     const titleText = note.title.trim() || 'Untitled';
                     const previewText = extractText(note.content).trim() || 'Empty note';
-
                     const isChecked = selectedNotesMap[note.id] ? 'checked' : '';
+                    
+                    const tagsHtml = (note.tags || []).map(t => `<span class="tag-badge">${t}</span>`).join('');
+
                     li.innerHTML = `
                         <input type="checkbox" class="note-checkbox" data-id="${note.id}" ${isChecked}>
                         <div class="note-item-info">
                             <div class="note-item-title">${titleText}</div>
                             <div class="note-item-preview">${previewText}</div>
+                            ${tagsHtml ? `<div class="note-item-tags">${tagsHtml}</div>` : ''}
                         </div>
                     `;
                     
                     li.addEventListener('click', (e) => {
                         const checkbox = li.querySelector('.note-checkbox');
                         if (isBulkMode) {
-                            if (e.target !== checkbox) {
-                                checkbox.checked = !checkbox.checked;
-                            }
+                            if (e.target !== checkbox) checkbox.checked = !checkbox.checked;
                             selectedNotesMap[note.id] = checkbox.checked;
                         } else {
                             if (e.target === checkbox) return;
@@ -783,10 +674,20 @@
                 return markdown.replace(/\n{3,}/g, '\n\n').trim();
             }
 
-            function downloadMarkdownFile(title, htmlContent) {
+            function downloadMarkdownFile(title, htmlContent, tagsArray = []) {
                 const markdownText = convertHtmlToMarkdown(htmlContent);
                 const filename = (title.trim() || 'Untitled') + '.md';
-                const blob = new Blob([markdownText], { type: 'text/markdown;charset=utf-8;' });
+                
+                // --- Obsidian YAML Frontmatter Integration ---
+                let finalExportText = markdownText;
+                
+                if (tagsArray && tagsArray.length > 0) {
+                    const yamlTags = tagsArray.map(tag => `  - ${tag}`).join('\n');
+                    const frontmatter = `---\ntags:\n${yamlTags}\n---\n\n`;
+                    finalExportText = frontmatter + markdownText;
+                }
+
+                const blob = new Blob([finalExportText], { type: 'text/markdown;charset=utf-8;' });
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
                 link.setAttribute('download', filename);
@@ -807,7 +708,7 @@
                     const targetNote = notes.find(n => n.id === id);
                     if (targetNote) {
                         setTimeout(() => {
-                            downloadMarkdownFile(targetNote.title, targetNote.content);
+                            downloadMarkdownFile(targetNote.title, targetNote.content, targetNote.tags);
                         }, index * 150);
                     }
                 });
@@ -839,7 +740,7 @@
 
             exportSingleBtn.addEventListener('click', () => {
                 const activeNote = notes.find(n => n.id === activeNoteId);
-                if (activeNote) downloadMarkdownFile(activeNote.title, activeNote.content);
+                if (activeNote) downloadMarkdownFile(activeNote.title, activeNote.content, activeNote.tags);
             });
 
             bulkModeBtn.addEventListener('click', () => {
@@ -888,17 +789,25 @@
 
             // Keyboard Shortcuts (Enter breakout & Tab indents)
             noteContentEl.addEventListener('keydown', (e) => {
-                // 1. Break out of blockquote when pressing Enter on an empty line
+                // 1. Enter Logic for Blockquote
                 if (e.key === 'Enter') {
                     const currentFormat = document.queryCommandValue('formatBlock');
                     if (currentFormat === 'blockquote') {
-                        const selection = window.getSelection();
-                        if (selection.anchorNode && selection.anchorNode.textContent.trim() === '') {
-                            e.preventDefault(); 
+                        e.preventDefault(); // Stop default browser splitting
+                        
+                        if (lastKeyWasEnter) {
                             document.execCommand('formatBlock', false, 'DIV'); 
-                            return;
+                            lastKeyWasEnter = false; 
+                        } else {
+                            document.execCommand('insertLineBreak');
+                            lastKeyWasEnter = true; 
                         }
+                        return;
                     }
+                }
+
+                if (e.key !== 'Enter') {
+                    lastKeyWasEnter = false;
                 }
 
                 // 2. Create sub-bullets using Tab and Shift+Tab
@@ -910,6 +819,10 @@
                         document.execCommand('indent', false, null);
                     }
                 }
+            });
+
+            noteContentEl.addEventListener('mousedown', () => {
+                lastKeyWasEnter = false;
             });
 
             init();
