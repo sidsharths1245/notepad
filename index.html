@@ -172,27 +172,61 @@
         .editor-body { 
             flex: 1; 
             display: flex; 
-            justify-content: center; /* Centralizes the card */
+            justify-content: center; 
             align-items: flex-start; 
             overflow-y: auto; 
-            padding: 20px 32px 60px 32px;
+            padding: 20px 32px 0 32px; 
         }
 
         .editor-center-card {
+            position: relative; /* Essential for absolute positioned resizers */
             width: 100%;
-            max-width: 840px; /* Constrains width so it doesn't look too wide */
+            max-width: 840px; /* Default width, will be overridden by JS if changed */
             background-color: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: 12px;
             box-shadow: 0 24px 50px rgba(0, 0, 0, 0.5);
             display: flex;
             flex-direction: column;
-            min-height: 85vh; /* Gives it a nice page height even when empty */
+            min-height: 85vh; 
+            margin-bottom: 60px; /* Space underneath the card */
         }
+
+        /* Custom edge resizers */
+        .card-resizer {
+            position: absolute;
+            top: 0; 
+            bottom: 0;
+            width: 12px;
+            cursor: ew-resize;
+            z-index: 10;
+            background-color: transparent;
+            transition: background-color 0.2s ease;
+            border-radius: 4px;
+        }
+        .card-resizer:hover, .card-resizer.active {
+            background-color: rgba(24, 119, 242, 0.3);
+        }
+        .card-resizer.left-edge { left: -6px; }
+        .card-resizer.right-edge { right: -6px; }
 
         .format-toolbar {
             display: flex; gap: 6px; padding: 12px 24px; border-bottom: 1px solid var(--border-color);
-            background-color: transparent; align-items: center;
+            align-items: center;
+            
+            /* Sticky Positioning */
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            
+            /* Frosted glass so text elegantly blurs underneath */
+            background-color: rgba(18, 18, 18, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            
+            /* Hugs the outer container's rounded corners */
+            border-top-left-radius: 11px; 
+            border-top-right-radius: 11px;
         }
         
         .icon-btn { 
@@ -275,8 +309,11 @@
         .tag-list-ui .delete-tag-btn:hover { color: var(--danger); background: var(--danger-bg); }
 
         #note-content { 
-            flex: 1; padding: 32px 48px; font-size: 15px; line-height: 1.7; 
-            outline: none; overflow-y: auto; color: var(--text-primary); 
+            flex: 1; 
+            /* Fixed 500px provides exactly ~20 blank lines at the bottom */
+            padding: 32px 48px 500px 48px; 
+            font-size: 15px; line-height: 1.7; 
+            outline: none; color: var(--text-primary); 
         }
         #note-content:empty:before { content: attr(data-placeholder); color: var(--text-secondary); pointer-events: none; display: block; }
         #note-content h1, #note-content h2, #note-content h3 { margin-top: 28px; margin-bottom: 14px; font-weight: 600; letter-spacing: -0.02em; }
@@ -431,7 +468,10 @@
             </header>
             
             <div class="editor-body">
-                <div class="editor-center-card">
+                <div class="editor-center-card" id="editor-card">
+                    <div class="card-resizer left-edge"></div>
+                    <div class="card-resizer right-edge"></div>
+
                     <div class="format-toolbar">
                         <button class="icon-btn format-btn" data-command="bold" title="Bold (Cmd/Ctrl + B)">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path></svg>
@@ -561,6 +601,10 @@
 
             const selectionOverlay = document.getElementById('selection-overlay');
 
+            // Editor Card Elements
+            const editorCard = document.getElementById('editor-card');
+            const cardResizers = document.querySelectorAll('.card-resizer');
+
             // State
             let notes = JSON.parse(localStorage.getItem('win11_richtext_notes')) || [];
             let globalTags = JSON.parse(localStorage.getItem('win11_richtext_global_tags')) || [
@@ -577,6 +621,103 @@
             let unsubscribeSnapshot = null;
             let lastKeyWasEnter = false;
             let savedRange = null;
+
+            // ---------- Editor Card Resizing Logic ----------
+            const savedCardWidth = localStorage.getItem('win11_richtext_editor_width');
+            if (savedCardWidth) {
+                editorCard.style.maxWidth = savedCardWidth + 'px';
+                editorCard.style.width = '100%'; 
+            }
+
+            let cardResizeState = null;
+
+            cardResizers.forEach(resizer => {
+                resizer.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    const isLeft = resizer.classList.contains('left-edge');
+                    cardResizeState = {
+                        startX: e.clientX,
+                        startWidth: editorCard.getBoundingClientRect().width,
+                        isLeft: isLeft
+                    };
+                    document.body.style.cursor = 'ew-resize';
+                    resizer.classList.add('active');
+                });
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (cardResizeState) {
+                    const deltaX = e.clientX - cardResizeState.startX;
+                    const widthChange = cardResizeState.isLeft ? -deltaX : deltaX;
+                    // Multiply by 2 because the card is centered
+                    let newWidth = cardResizeState.startWidth + (widthChange * 2);
+                    
+                    newWidth = Math.max(400, newWidth); // Minimum width constraint
+                    newWidth = Math.min(window.innerWidth - 60, newWidth); // Keep inside window
+                    
+                    editorCard.style.maxWidth = newWidth + 'px';
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (cardResizeState) {
+                    document.body.style.cursor = '';
+                    cardResizers.forEach(r => r.classList.remove('active'));
+                    localStorage.setItem('win11_richtext_editor_width', editorCard.getBoundingClientRect().width);
+                    cardResizeState = null;
+                }
+            });
+
+            // ---------- Dynamic Typewriter Centering ----------
+            function enforceTypewriterScroll() {
+                // Only trigger if we are actively focused inside the note
+                if (document.activeElement !== noteContentEl) return;
+                
+                const sel = window.getSelection();
+                if (!sel.rangeCount) return;
+
+                let caretY;
+                const range = sel.getRangeAt(0);
+                const rects = range.getClientRects();
+                
+                // Usually returns a rect if selecting text
+                if (rects.length > 0) {
+                    caretY = rects[0].top;
+                } else {
+                    // Fallback for empty lines (like pressing enter on a new paragraph)
+                    const marker = document.createElement('span');
+                    marker.textContent = '\u200b'; // invisible zero-width space
+                    range.insertNode(marker);
+                    caretY = marker.getBoundingClientRect().top;
+                    marker.parentNode.removeChild(marker);
+                }
+
+                if (caretY == null) return;
+
+                const scrollContainer = document.querySelector('.editor-body');
+                const containerRect = scrollContainer.getBoundingClientRect();
+                
+                // If the cursor falls below 65% of the screen height, recenter it
+                const threshold = containerRect.top + (containerRect.height * 0.65);
+                const centerTarget = containerRect.top + (containerRect.height * 0.5);
+
+                if (caretY > threshold) {
+                    const distance = caretY - centerTarget;
+                    scrollContainer.scrollBy({ top: distance, behavior: 'smooth' });
+                }
+            }
+
+            noteContentEl.addEventListener('input', () => {
+                updateActiveNote();
+                requestAnimationFrame(enforceTypewriterScroll);
+            });
+
+            noteContentEl.addEventListener('keyup', (e) => {
+                // Check on navigation or enter keys
+                if (['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'Enter'].includes(e.key)) {
+                    requestAnimationFrame(enforceTypewriterScroll);
+                }
+            });
 
             // ---------- Tags Logic ----------
             tagMenuBtn.addEventListener('click', (e) => {
@@ -1440,6 +1581,7 @@
                 e.preventDefault();
                 const text = (e.originalEvent || e).clipboardData.getData('text/plain');
                 document.execCommand('insertText', false, text);
+                setTimeout(enforceTypewriterScroll, 50); // Small delay to let paste render before centering
             });
 
             init();
