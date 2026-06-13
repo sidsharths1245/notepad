@@ -28,7 +28,8 @@
             
             --code-bg: #1a1a1a;
             --danger: #ff453a;
-            --danger-bg: rgba(255, 69, 58, 0.1);
+            --danger-bg: rgba(255, 69, 58, 0.12);
+            --danger-hover: rgba(255, 69, 58, 0.25);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -137,9 +138,10 @@
             padding: 16px; 
             background-color: var(--bg-sidebar); 
             border-top: 1px solid var(--border-color); 
+            display: flex; align-items: center; gap: 8px;
         }
         .auth-btn { 
-            width: 100%; padding: 10px; background: transparent; 
+            flex: 1; padding: 10px; background: transparent; 
             border: 1px solid var(--border-color); color: var(--text-primary); 
             border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; 
             transition: all 0.2s ease; 
@@ -147,6 +149,21 @@
         .auth-btn:hover { 
             background: #1a1a1a; 
             border-color: var(--border-highlight); 
+        }
+        
+        /* High Contrast Log Out Button */
+        #logout-btn { 
+            width: 36px; height: 36px; flex-shrink: 0; 
+            background: var(--danger-bg); 
+            border: 1px solid rgba(255, 69, 58, 0.4); 
+            color: var(--danger);
+            border-radius: 6px; cursor: pointer; display: none; 
+            align-items: center; justify-content: center; 
+            transition: all 0.2s ease;
+        }
+        #logout-btn:hover { 
+            background: var(--danger-hover); 
+            border-color: var(--danger); 
         }
 
         /* Main Container */
@@ -168,6 +185,17 @@
         }
         #note-title::placeholder { color: var(--text-secondary); }
 
+        /* Delete Button in Header - Danger Red */
+        #delete-note-btn {
+            color: var(--danger);
+            border: 1px solid transparent;
+        }
+        #delete-note-btn:hover {
+            background-color: var(--danger-bg);
+            border-color: rgba(255, 69, 58, 0.3);
+            color: #ff5e54;
+        }
+
         /* Centralized Editor Area */
         .editor-body { 
             flex: 1; 
@@ -175,13 +203,13 @@
             justify-content: center; 
             align-items: flex-start; 
             overflow-y: auto; 
-            padding: 20px 32px 0 32px; 
+            padding: 0 32px 0 32px; 
         }
 
         .editor-center-card {
-            position: relative; /* Essential for absolute positioned resizers */
+            position: relative; 
             width: 100%;
-            max-width: 840px; /* Default width, will be overridden by JS if changed */
+            max-width: 840px; 
             background-color: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: 12px;
@@ -189,7 +217,8 @@
             display: flex;
             flex-direction: column;
             min-height: 85vh; 
-            margin-bottom: 60px; /* Space underneath the card */
+            margin-top: 20px;
+            margin-bottom: 60px; 
         }
 
         /* Custom edge resizers */
@@ -214,7 +243,7 @@
             display: flex; gap: 6px; padding: 12px 24px; border-bottom: 1px solid var(--border-color);
             align-items: center;
             
-            /* Sticky Positioning */
+            /* Sticky Positioning perfectly flush to top edge */
             position: sticky;
             top: 0;
             z-index: 40;
@@ -235,7 +264,7 @@
             width: 32px; height: 32px; border-radius: 6px; 
             transition: all 0.15s ease; 
         }
-        .icon-btn:hover { 
+        .icon-btn:not(#delete-note-btn):hover { 
             background-color: rgba(255, 255, 255, 0.08); 
             color: var(--text-primary);
         }
@@ -310,7 +339,6 @@
 
         #note-content { 
             flex: 1; 
-            /* Fixed 500px provides exactly ~20 blank lines at the bottom */
             padding: 32px 48px 500px 48px; 
             font-size: 15px; line-height: 1.7; 
             outline: none; color: var(--text-primary); 
@@ -413,6 +441,57 @@
             display: none;
             border-radius: 4px;
         }
+
+        /* Keyboard Shortcuts Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.visible { display: flex; animation: fadeIn 0.2s; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; } to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border-highlight);
+            border-radius: 12px;
+            width: 420px;
+            max-width: 90vw;
+            padding: 24px;
+            box-shadow: 0 24px 50px rgba(0,0,0,0.5);
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h3 { font-size: 16px; font-weight: 600; color: var(--text-primary); margin: 0; }
+        .shortcut-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 0; border-bottom: 1px solid var(--border-color);
+        }
+        .shortcut-row:last-child { border-bottom: none; }
+        .shortcut-name { font-size: 14px; color: var(--text-secondary); }
+        .shortcut-btn {
+            background: #1a1a1a; border: 1px solid var(--border-color);
+            color: var(--text-primary); padding: 8px 12px; border-radius: 6px;
+            font-family: ui-monospace, monospace; font-size: 12px; cursor: pointer;
+            transition: all 0.2s; min-width: 120px; text-align: center;
+        }
+        .shortcut-btn:hover { background: #222; border-color: var(--accent); }
+        .shortcut-btn.recording { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); box-shadow: var(--accent-glow); }
+        .modal-actions { margin-top: 24px; text-align: right; }
+        .modal-actions button.cancel {
+            background: transparent; border: 1px solid var(--border-color);
+            color: var(--text-secondary); padding: 8px 16px; border-radius: 6px;
+            cursor: pointer; font-size: 13px; transition: all 0.2s;
+        }
+        .modal-actions button.cancel:hover { background: var(--item-hover); color: var(--text-primary); }
     </style>
 </head>
 <body>
@@ -421,7 +500,7 @@
             <div class="sidebar-header">
                 <h2>Notes</h2>
                 <div class="sidebar-header-actions">
-                    <button id="add-note-btn" class="icon-btn" title="New Note (Cmd/Ctrl + Alt + N)">
+                    <button id="add-note-btn" class="icon-btn">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="12" y1="5" x2="12" y2="19"></line>
                             <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -435,12 +514,19 @@
 
             <div class="auth-footer">
                 <button id="login-btn" class="auth-btn">Login to Sync</button>
+                <button id="logout-btn" title="Logout">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                </button>
             </div>
         </aside>
 
         <main class="editor-container">
             <header class="editor-header">
-                <button id="toggle-sidebar-btn" class="icon-btn" title="Toggle Menu (Cmd/Ctrl + /)">
+                <button id="toggle-sidebar-btn" class="icon-btn">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="3" y1="12" x2="21" y2="12"></line>
                         <line x1="3" y1="6" x2="21" y2="6"></line>
@@ -450,8 +536,23 @@
                 <input type="text" id="note-title" placeholder="File name" autocomplete="off">
                 
                 <div style="flex: 1"></div>
+                
+                <button id="shortcuts-modal-btn" class="icon-btn" title="Edit Keyboard Shortcuts">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
+                        <line x1="6" y1="8" x2="6.01" y2="8"></line>
+                        <line x1="10" y1="8" x2="10.01" y2="8"></line>
+                        <line x1="14" y1="8" x2="14.01" y2="8"></line>
+                        <line x1="18" y1="8" x2="18.01" y2="8"></line>
+                        <line x1="6" y1="12" x2="6.01" y2="12"></line>
+                        <line x1="10" y1="12" x2="10.01" y2="12"></line>
+                        <line x1="14" y1="12" x2="14.01" y2="12"></line>
+                        <line x1="18" y1="12" x2="18.01" y2="12"></line>
+                        <line x1="7" y1="16" x2="17" y2="16"></line>
+                    </svg>
+                </button>
 
-                <button id="export-single-btn" class="icon-btn" title="Export Selected Notes">
+                <button id="export-single-btn" class="icon-btn">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                         <polyline points="7 10 12 5 17 10"></polyline>
@@ -459,7 +560,7 @@
                     </svg>
                 </button>
 
-                <button id="delete-note-btn" class="icon-btn" title="Delete Selected Notes">
+                <button id="delete-note-btn" class="icon-btn">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="3 6 5 6 21 6"></polyline>
                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -473,22 +574,22 @@
                     <div class="card-resizer right-edge"></div>
 
                     <div class="format-toolbar">
-                        <button class="icon-btn format-btn" data-command="bold" title="Bold (Cmd/Ctrl + B)">
+                        <button class="icon-btn format-btn" data-command="bold">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path></svg>
                         </button>
-                        <button class="icon-btn format-btn" data-command="italic" title="Italic (Cmd/Ctrl + I)">
+                        <button class="icon-btn format-btn" data-command="italic">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="4" x2="10" y2="4"></line><line x1="14" y1="20" x2="5" y2="20"></line><line x1="15" y1="4" x2="9" y2="20"></line></svg>
                         </button>
                         <button class="icon-btn format-btn" data-command="strikeThrough" title="Strikethrough">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4H9a3 3 0 0 0-2.83 4"></path><path d="M14 12a4 4 0 0 1 0 8H6"></path><line x1="4" y1="12" x2="20" y2="12"></line></svg>
                         </button>
-                        <button class="icon-btn format-btn" data-command="formatBlock" data-value="H2" title="Heading">
+                        <button class="icon-btn format-btn" data-command="formatBlock" data-value="H2">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16M4 18V6M20 18V6"></path></svg>
                         </button>
-                        <button class="icon-btn format-btn" data-command="formatBlock" data-value="BLOCKQUOTE" title="Quote">
+                        <button class="icon-btn format-btn" data-command="formatBlock" data-value="BLOCKQUOTE">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"></path><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"></path></svg>
                         </button>
-                        <button class="icon-btn format-btn" data-command="createLink" title="Link (Cmd/Ctrl + K)">
+                        <button class="icon-btn format-btn" data-command="createLink">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
                         </button>
                         <button class="icon-btn format-btn" data-command="insertImage" title="Insert Image (URL or from device)">
@@ -498,7 +599,7 @@
                                 <polyline points="21 15 16 10 5 21"></polyline>
                             </svg>
                         </button>
-                        <button class="icon-btn format-btn" data-command="insertUnorderedList" title="Bulleted List">
+                        <button class="icon-btn format-btn" data-command="insertUnorderedList">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
                         </button>
                         <div class="tag-dropdown-container">
@@ -547,9 +648,25 @@
         </div>
     </div>
 
+    <div id="shortcuts-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Keyboard Shortcuts</h3>
+                <button id="close-shortcuts" class="icon-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div id="shortcuts-list">
+                </div>
+            <div class="modal-actions">
+                <button id="reset-shortcuts-btn" class="cancel">Reset to Defaults</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, deleteDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -572,25 +689,32 @@
             const toggleSidebarBtn = document.getElementById('toggle-sidebar-btn');
             const addNoteBtn = document.getElementById('add-note-btn');
             const deleteNoteBtn = document.getElementById('delete-note-btn');
+            const exportSingleBtn = document.getElementById('export-single-btn');
             const noteTitleInput = document.getElementById('note-title');
             const noteContentEl = document.getElementById('note-content');
             const formatBtns = document.querySelectorAll('.format-btn');
-            const exportSingleBtn = document.getElementById('export-single-btn');
             const loginBtn = document.getElementById('login-btn');
+            const logoutBtn = document.getElementById('logout-btn');
             const tagMenuBtn = document.getElementById('tag-menu-btn');
             const tagDropdown = document.getElementById('tag-dropdown');
             const tagListUI = document.getElementById('tag-list-ui');
             const newTagInput = document.getElementById('new-tag-input');
             const addTagSubmit = document.getElementById('add-tag-submit');
 
-            // Link popup elements
+            // Shortcuts elements
+            const shortcutsModalBtn = document.getElementById('shortcuts-modal-btn');
+            const shortcutsModal = document.getElementById('shortcuts-modal');
+            const closeShortcutsBtn = document.getElementById('close-shortcuts');
+            const shortcutsListEl = document.getElementById('shortcuts-list');
+            const resetShortcutsBtn = document.getElementById('reset-shortcuts-btn');
+
+            // Link & Image popup elements
             const linkPopup = document.getElementById('link-popup');
             const linkTextInput = document.getElementById('link-text-input');
             const linkUrlInput = document.getElementById('link-url-input');
             const insertLinkBtn = document.getElementById('insert-link-btn');
             const cancelLinkBtn = document.getElementById('cancel-link-btn');
 
-            // Image popup elements
             const imagePopup = document.getElementById('image-popup');
             const imageUrlInput = document.getElementById('image-url-input');
             const imageAltInput = document.getElementById('image-alt-input');
@@ -600,8 +724,6 @@
             const cancelImageBtn = document.getElementById('cancel-image-btn');
 
             const selectionOverlay = document.getElementById('selection-overlay');
-
-            // Editor Card Elements
             const editorCard = document.getElementById('editor-card');
             const cardResizers = document.querySelectorAll('.card-resizer');
 
@@ -621,6 +743,158 @@
             let unsubscribeSnapshot = null;
             let lastKeyWasEnter = false;
             let savedRange = null;
+
+            // ---------- Keyboard Shortcuts System ----------
+            const shortcutActions = [
+                { id: 'newNote', label: 'New Note', default: { ctrlOrMeta: true, alt: true, shift: false, key: 'n' } },
+                { id: 'delete', label: 'Delete Note', default: { ctrlOrMeta: true, alt: false, shift: true, key: 'backspace' } },
+                { id: 'export', label: 'Export Notes', default: { ctrlOrMeta: true, alt: false, shift: true, key: 'e' } },
+                { id: 'toggleMenu', label: 'Toggle Sidebar', default: { ctrlOrMeta: true, alt: false, shift: false, key: '/' } },
+                { id: 'bold', label: 'Bold', default: { ctrlOrMeta: true, alt: false, shift: false, key: 'b' } },
+                { id: 'italic', label: 'Italic', default: { ctrlOrMeta: true, alt: false, shift: false, key: 'i' } },
+                { id: 'heading2', label: 'Heading', default: { ctrlOrMeta: true, alt: false, shift: false, key: '2' } },
+                { id: 'quote', label: 'Blockquote', default: { ctrlOrMeta: true, alt: false, shift: true, key: 'q' } },
+                { id: 'bullet', label: 'Bulleted List', default: { ctrlOrMeta: true, alt: false, shift: true, key: 'u' } },
+                { id: 'link', label: 'Insert Link', default: { ctrlOrMeta: true, alt: false, shift: false, key: 'k' } }
+            ];
+            let userShortcuts = JSON.parse(localStorage.getItem('win11_richtext_shortcuts')) || {};
+            let recordingActionId = null;
+
+            function getShortcut(id) {
+                return userShortcuts[id] || shortcutActions.find(a => a.id === id).default;
+            }
+
+            function formatShortcut(shortcut) {
+                const parts = [];
+                const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+                if (shortcut.ctrlOrMeta) parts.push(isMac ? 'Cmd' : 'Ctrl');
+                if (shortcut.alt) parts.push(isMac ? 'Opt' : 'Alt');
+                if (shortcut.shift) parts.push('Shift');
+                
+                let keyName = shortcut.key;
+                if (keyName.toLowerCase() === 'backspace') keyName = 'Backspace';
+                else keyName = keyName.toUpperCase();
+                
+                parts.push(keyName);
+                return parts.join(' + ');
+            }
+
+            function updateTooltips() {
+                document.getElementById('add-note-btn').title = `New Note (${formatShortcut(getShortcut('newNote'))})`;
+                document.getElementById('delete-note-btn').title = `Delete Selected Notes (${formatShortcut(getShortcut('delete'))})`;
+                document.getElementById('export-single-btn').title = `Export Selected Notes (${formatShortcut(getShortcut('export'))})`;
+                document.getElementById('toggle-sidebar-btn').title = `Toggle Menu (${formatShortcut(getShortcut('toggleMenu'))})`;
+                
+                document.querySelector('[data-command="bold"]').title = `Bold (${formatShortcut(getShortcut('bold'))})`;
+                document.querySelector('[data-command="italic"]').title = `Italic (${formatShortcut(getShortcut('italic'))})`;
+                document.querySelector('[data-command="formatBlock"][data-value="H2"]').title = `Heading (${formatShortcut(getShortcut('heading2'))})`;
+                document.querySelector('[data-command="formatBlock"][data-value="BLOCKQUOTE"]').title = `Quote (${formatShortcut(getShortcut('quote'))})`;
+                document.querySelector('[data-command="insertUnorderedList"]').title = `Bulleted List (${formatShortcut(getShortcut('bullet'))})`;
+                document.querySelector('[data-command="createLink"]').title = `Link (${formatShortcut(getShortcut('link'))})`;
+            }
+
+            function renderShortcutsModal() {
+                shortcutsListEl.innerHTML = '';
+                shortcutActions.forEach(action => {
+                    const row = document.createElement('div');
+                    row.className = 'shortcut-row';
+                    const sc = getShortcut(action.id);
+                    const isRecording = recordingActionId === action.id;
+                    const btnText = isRecording ? 'Press combination...' : formatShortcut(sc);
+                    
+                    row.innerHTML = `
+                        <span class="shortcut-name">${action.label}</span>
+                        <button class="shortcut-btn ${isRecording ? 'recording' : ''}" data-id="${action.id}">${btnText}</button>
+                    `;
+                    shortcutsListEl.appendChild(row);
+                });
+
+                shortcutsListEl.querySelectorAll('.shortcut-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        recordingActionId = e.target.dataset.id;
+                        renderShortcutsModal();
+                    });
+                });
+            }
+
+            shortcutsModalBtn.addEventListener('click', () => {
+                recordingActionId = null;
+                renderShortcutsModal();
+                shortcutsModal.classList.add('visible');
+            });
+
+            closeShortcutsBtn.addEventListener('click', () => {
+                recordingActionId = null;
+                shortcutsModal.classList.remove('visible');
+            });
+
+            resetShortcutsBtn.addEventListener('click', () => {
+                if (confirm("Reset all shortcuts to default?")) {
+                    userShortcuts = {};
+                    localStorage.removeItem('win11_richtext_shortcuts');
+                    recordingActionId = null;
+                    renderShortcutsModal();
+                    updateTooltips();
+                }
+            });
+
+            document.addEventListener('keydown', (e) => {
+                // Handling recording new shortcut
+                if (recordingActionId) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (['Control', 'Alt', 'Shift', 'Meta'].includes(e.key)) return; // Wait for final key
+                    
+                    // Force modifier usage to prevent overriding basic typing (unless it's a function key like backspace, but let's strictly require modifiers for safety)
+                    if (!e.ctrlKey && !e.metaKey && !e.altKey) {
+                        alert('Shortcuts must include a modifier key (Ctrl, Cmd, or Alt) so you can still type normally!');
+                        recordingActionId = null;
+                        renderShortcutsModal();
+                        return;
+                    }
+
+                    userShortcuts[recordingActionId] = {
+                        ctrlOrMeta: e.ctrlKey || e.metaKey,
+                        alt: e.altKey,
+                        shift: e.shiftKey,
+                        key: e.key.toLowerCase()
+                    };
+                    localStorage.setItem('win11_richtext_shortcuts', JSON.stringify(userShortcuts));
+                    recordingActionId = null;
+                    renderShortcutsModal();
+                    updateTooltips();
+                    return;
+                }
+
+                // Handling execution of shortcuts
+                if (shortcutsModal.classList.contains('visible')) return; // Disabled while modal is open
+                
+                // Allow normal typing in input fields unless modifier is pressed
+                if (document.activeElement.tagName === 'INPUT' && !e.ctrlKey && !e.metaKey) return; 
+
+                for (const action of shortcutActions) {
+                    const sc = getShortcut(action.id);
+                    const eventCtrlOrMeta = e.ctrlKey || e.metaKey;
+                    if (eventCtrlOrMeta === sc.ctrlOrMeta && e.altKey === sc.alt && e.shiftKey === sc.shift && e.key.toLowerCase() === sc.key.toLowerCase()) {
+                        e.preventDefault();
+                        if (action.id === 'newNote') createNewNote();
+                        else if (action.id === 'delete') deleteNoteBtn.click();
+                        else if (action.id === 'export') exportSingleBtn.click();
+                        else if (action.id === 'toggleMenu') sidebar.classList.toggle('collapsed');
+                        else if (action.id === 'bold') { document.execCommand('bold'); updateActiveNote(); updateToolbarState(); }
+                        else if (action.id === 'italic') { document.execCommand('italic'); updateActiveNote(); updateToolbarState(); }
+                        else if (action.id === 'heading2') { document.execCommand('formatBlock', false, 'H2'); updateActiveNote(); updateToolbarState(); }
+                        else if (action.id === 'quote') { document.execCommand('formatBlock', false, 'BLOCKQUOTE'); updateActiveNote(); updateToolbarState(); }
+                        else if (action.id === 'bullet') { document.execCommand('insertUnorderedList'); updateActiveNote(); updateToolbarState(); }
+                        else if (action.id === 'link') {
+                            if (linkPopup.classList.contains('visible')) hideLinkPopup();
+                            else showLinkPopup();
+                        }
+                        return;
+                    }
+                }
+            }, true); // Capture phase
+
 
             // ---------- Editor Card Resizing Logic ----------
             const savedCardWidth = localStorage.getItem('win11_richtext_editor_width');
@@ -670,7 +944,6 @@
 
             // ---------- Dynamic Typewriter Centering ----------
             function enforceTypewriterScroll() {
-                // Only trigger if we are actively focused inside the note
                 if (document.activeElement !== noteContentEl) return;
                 
                 const sel = window.getSelection();
@@ -680,13 +953,11 @@
                 const range = sel.getRangeAt(0);
                 const rects = range.getClientRects();
                 
-                // Usually returns a rect if selecting text
                 if (rects.length > 0) {
                     caretY = rects[0].top;
                 } else {
-                    // Fallback for empty lines (like pressing enter on a new paragraph)
                     const marker = document.createElement('span');
-                    marker.textContent = '\u200b'; // invisible zero-width space
+                    marker.textContent = '\u200b'; 
                     range.insertNode(marker);
                     caretY = marker.getBoundingClientRect().top;
                     marker.parentNode.removeChild(marker);
@@ -697,7 +968,6 @@
                 const scrollContainer = document.querySelector('.editor-body');
                 const containerRect = scrollContainer.getBoundingClientRect();
                 
-                // If the cursor falls below 65% of the screen height, recenter it
                 const threshold = containerRect.top + (containerRect.height * 0.65);
                 const centerTarget = containerRect.top + (containerRect.height * 0.5);
 
@@ -713,7 +983,6 @@
             });
 
             noteContentEl.addEventListener('keyup', (e) => {
-                // Check on navigation or enter keys
                 if (['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'Enter'].includes(e.key)) {
                     requestAnimationFrame(enforceTypewriterScroll);
                 }
@@ -838,11 +1107,10 @@
 
             // ---------- Auth ----------
             loginBtn.addEventListener('click', async () => {
-                if (auth.currentUser) {
-                    alert("Already logged in as: " + auth.currentUser.email);
-                    return;
-                }
+                if (auth.currentUser) return; 
+                
                 const email = prompt("Enter Firebase Email:");
+                if (!email) return;
                 const password = prompt("Enter Firebase Password:");
                 if (email && password) {
                     try {
@@ -852,17 +1120,40 @@
                 }
             });
 
+            logoutBtn.addEventListener('click', async () => {
+                if (confirm("Are you sure you want to log out of Firebase Sync?")) {
+                    try {
+                        await signOut(auth);
+                        alert("Logged out successfully.");
+                    } catch (error) {
+                        console.error("Logout error", error);
+                    }
+                }
+            });
+
             onAuthStateChanged(auth, (user) => {
                 if (user) {
-                    loginBtn.textContent = "Synced with Cloud";
+                    const displayEmail = user.email.split('@')[0];
+                    loginBtn.textContent = `Synced: ${displayEmail}`;
                     loginBtn.style.color = "var(--accent)";
                     loginBtn.style.borderColor = "var(--accent)";
+                    logoutBtn.style.display = "flex";
                     listenToCloud(); 
+                } else {
+                    loginBtn.textContent = "Login to Sync";
+                    loginBtn.style.color = "";
+                    loginBtn.style.borderColor = "";
+                    logoutBtn.style.display = "none";
+                    if (unsubscribeSnapshot) { 
+                        unsubscribeSnapshot(); 
+                        unsubscribeSnapshot = null; 
+                    }
                 }
             });
 
             // ---------- Core Note Functions ----------
             function init() {
+                updateTooltips();
                 if (notes.length === 0) createNewNote();
                 else {
                     activeNoteId = notes[0].id;
