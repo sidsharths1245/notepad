@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notepad</title>
+    <style>
+        :root {
+            /* Windows 11 Dark Mode Palette */
+            --bg-body: #272727;
+            --bg-sidebar: #1c1c1c;
+            --bg-header: #1c1c1c;
+            --border-color: #333333;
+            --text-primary: #ffffff;
+            --text-secondary: #999999;
+            --item-hover: #2d2d2d;
+            --item-active: #333333;
+            --accent: #4cc2ff;
+            --code-bg: #1e1e1e;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .app-container {
+            display: flex;
+            height: 100%;
+        }
+
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar {
+            width: 14px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: #555;
+            border: 4px solid var(--bg-body);
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: #777;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 260px;
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            transition: margin-left 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 10;
+        }
+
+        .sidebar.collapsed {
+            margin-left: -260px;
+        }
+
+        .sidebar-header {
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-header h2 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .sidebar-header-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .notes-list {
+            list-style: none;
+            overflow-y: auto;
+            flex: 1;
+            padding: 0 8px 8px 8px;
+        }
+
+        .notes-list li {
+            padding: 10px 12px;
+            margin-bottom: 2px;
+            cursor: pointer;
+            border-radius: 4px;
+            border-left: 3px solid transparent;
+            transition: background-color 0.1s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .notes-list li:hover {
+            background-color: var(--item-hover);
+        }
+
+        .notes-list li.active {
+            background-color: var(--item-active);
+            border-left: 3px solid var(--accent);
+        }
+
+        .note-item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .note-item-title {
+            font-size: 14px;
+            font-weight: 400;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .note-item-preview {
+            font-size: 12px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Custom Checkbox for Bulk Mode */
+        .note-checkbox {
+            display: none;
+            width: 16px;
+            height: 16px;
+            border: 1.5px solid var(--text-secondary);
+            border-radius: 3px;
+            background: transparent;
+            cursor: pointer;
+            position: relative;
+            appearance: none;
+            outline: none;
+            flex-shrink: 0;
+        }
+
+        .note-checkbox:checked {
+            background-color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .note-checkbox:checked::after {
+            content: '';
+            position: absolute;
+            left: 4px;
+            top: 1px;
+            width: 4px;
+            height: 8px;
+            border: solid #000;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        /* Bulk Selection Mode Active State */
+        .bulk-mode .note-checkbox {
+            display: block;
+        }
+
+        .bulk-footer {
+            display: none;
+            padding: 12px;
+            background-color: var(--bg-header);
+            border-top: 1px solid var(--border-color);
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .bulk-mode .bulk-footer {
+            display: flex;
+        }
+
+        .bulk-btn {
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            border: none;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .bulk-btn-primary {
+            background-color: var(--accent);
+            color: #000000;
+        }
+
+        .bulk-btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        .bulk-btn-secondary {
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .bulk-btn-secondary:hover {
+            background-color: var(--item-hover);
+        }
+
+        /* Editor Styling */
+        .editor-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            background-color: var(--bg-body);
+        }
+
+        /* Command Bar (Header) */
+        .editor-header {
+            padding: 8px 16px;
+            background-color: var(--bg-header);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            height: 48px;
+        }
+
+        #note-title {
+            flex: 1;
+            font-size: 14px;
+            font-weight: 400;
+            border: none;
+            outline: none;
+            background: transparent;
+            color: var(--text-primary);
+            font-family: inherit;
+        }
+
+        #note-title::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .editor-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Formatting Toolbar */
+        .format-toolbar {
+            display: flex;
+            gap: 4px;
+            padding: 8px 16px;
+            border-bottom: 1px solid var(--border-color);
+            background-color: var(--bg-body);
+        }
+
+        .format-toolbar .icon-btn {
+            width: 28px;
+            height: 28px;
+            color: var(--text-secondary);
+        }
+
+        .format-toolbar .icon-btn:hover {
+            color: var(--text-primary);
+            background-color: var(--item-hover);
+        }
+
+        .format-toolbar .icon-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* Rich Text Editor Content */
+        #note-content {
+            flex: 1;
+            padding: 24px 32px;
+            font-size: 15px;
+            line-height: 1.6;
+            outline: none;
+            overflow-y: auto;
+            color: var(--text-primary);
+        }
+
+        #note-content:empty:before {
+            content: attr(data-placeholder);
+            color: var(--text-secondary);
+            pointer-events: none;
+            display: block;
+        }
+
+        /* Visual styling inside the editor */
+        #note-content h1, #note-content h2, #note-content h3 {
+            margin-top: 24px;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+        #note-content h1:first-child, #note-content h2:first-child { margin-top: 0; }
+        #note-content h1 { font-size: 24px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
+        #note-content h2 { font-size: 20px; }
+        #note-content p { margin-bottom: 12px; }
+        #note-content a { color: var(--accent); text-decoration: none; cursor: pointer; }
+        #note-content a:hover { text-decoration: underline; }
+        #note-content ul, #note-content ol { margin-bottom: 16px; padding-left: 24px; }
+        #note-content li { margin-bottom: 4px; }
+        #note-content blockquote {
+            border-left: 4px solid var(--accent);
+            padding-left: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            background-color: rgba(255, 255, 255, 0.03);
+            padding-top: 8px;
+            padding-bottom: 8px;
+            border-radius: 0 4px 4px 0;
+        }
+        #note-content code {
+            background-color: var(--code-bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: ui-monospace, "Cascadia Code", "Segoe UI Mono", monospace;
+            font-size: 13.5px;
+            border: 1px solid var(--border-color);
+        }
+
+        /* Buttons */
+        .icon-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            transition: background-color 0.1s;
+        }
+
+        .icon-btn:hover {
+            background-color: var(--item-hover);
+        }
+        
+        .icon-btn svg {
+            width: 16px;
+            height: 16px;
+            stroke-width: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h2>Notes</h2>
+                <div class="sidebar-header-actions">
+                    <button id="bulk-mode-btn" class="icon-btn" title="Select Multiple / Bulk Export">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 11 12 14 22 4"></polyline>
+                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                        </svg>
+                    </button>
+                    <button id="add-note-btn" class="icon-btn" title="New Note (Cmd/Ctrl + Alt + N)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <ul id="notes-list" class="notes-list"></ul>
+
+            <div class="bulk-footer">
+                <button id="export-selected-btn" class="bulk-btn bulk-btn-primary">Download Selected (.md)</button>
+                <button id="cancel-bulk-btn" class="bulk-btn bulk-btn-secondary">Cancel</button>
+            </div>
+        </aside>
+
+        <main class="editor-container">
+            <header class="editor-header">
+                <button id="toggle-sidebar-btn" class="icon-btn" title="Toggle Menu (Cmd/Ctrl + /)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+                <input type="text" id="note-title" placeholder="File name" autocomplete="off">
+                
+                <div style="flex: 1"></div>
+
+                <button id="export-single-btn" class="icon-btn" title="Export Current Note to Markdown (.md)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                </button>
+
+                <button id="delete-note-btn" class="icon-btn" title="Delete Note (Cmd/Ctrl + Backspace)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                </button>
+            </header>
+            
+            <div class="editor-body">
+                <div class="format-toolbar">
+                    <button class="icon-btn format-btn" data-command="bold" title="Bold (Cmd/Ctrl + B)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path></svg>
+                    </button>
+                    <button class="icon-btn format-btn" data-command="italic" title="Italic (Cmd/Ctrl + I)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="4" x2="10" y2="4"></line><line x1="14" y1="20" x2="5" y2="20"></line><line x1="15" y1="4" x2="9" y2="20"></line></svg>
+                    </button>
+                    <button class="icon-btn format-btn" data-command="strikeThrough" title="Strikethrough">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4H9a3 3 0 0 0-2.83 4"></path><path d="M14 12a4 4 0 0 1 0 8H6"></path><line x1="4" y1="12" x2="20" y2="12"></line></svg>
+                    </button>
+                    <div style="width: 1px; background: var(--border-color); margin: 4px 6px;"></div>
+                    <button class="icon-btn format-btn" data-command="formatBlock" data-value="H2" title="Heading">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16M4 18V6M20 18V6"></path></svg>
+                    </button>
+                    <button class="icon-btn format-btn" data-command="formatBlock" data-value="BLOCKQUOTE" title="Quote">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"></path><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"></path></svg>
+                    </button>
+                    <button class="icon-btn format-btn" data-command="insertHTML" data-is-code="true" title="Code">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                    </button>
+                    <div style="width: 1px; background: var(--border-color); margin: 4px 6px;"></div>
+                    <button class="icon-btn format-btn" data-command="createLink" title="Link (Cmd/Ctrl + K)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                    </button>
+                    <button class="icon-btn format-btn" data-command="insertUnorderedList" title="Bulleted List">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                    </button>
+                </div>
+                
+                <div id="note-content" contenteditable="true" data-placeholder="Start typing..."></div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sidebar = document.getElementById('sidebar');
+            const notesListEl = document.getElementById('notes-list');
+            const toggleSidebarBtn = document.getElementById('toggle-sidebar-btn');
+            const addNoteBtn = document.getElementById('add-note-btn');
+            const deleteNoteBtn = document.getElementById('delete-note-btn');
+            const noteTitleInput = document.getElementById('note-title');
+            const noteContentEl = document.getElementById('note-content');
+            const formatBtns = document.querySelectorAll('.format-btn');
+            
+            // New Export Buttons
+            const exportSingleBtn = document.getElementById('export-single-btn');
+            const bulkModeBtn = document.getElementById('bulk-mode-btn');
+            const cancelBulkBtn = document.getElementById('cancel-bulk-btn');
+            const exportSelectedBtn = document.getElementById('export-selected-btn');
+
+            let notes = JSON.parse(localStorage.getItem('win11_richtext_notes')) || [];
+            let activeNoteId = null;
+            let isBulkMode = false;
+            let selectedNotesMap = {}; // Tracks checked files in bulk mode
+
+            function init() {
+                if (notes.length === 0) {
+                    createNewNote();
+                } else {
+                    activeNoteId = notes[0].id;
+                    renderNotesList();
+                    loadActiveNote();
+                }
+            }
+
+            function saveToStorage() {
+                localStorage.setItem('win11_richtext_notes', JSON.stringify(notes));
+                renderNotesList();
+            }
+
+            function createNewNote() {
+                const newNote = {
+                    id: Date.now().toString(),
+                    title: '',
+                    content: '',
+                    timestamp: Date.now()
+                };
+                notes.unshift(newNote);
+                activeNoteId = newNote.id;
+
+                saveToStorage();
+                loadActiveNote();
+                noteContentEl.focus();
+            }
+
+            function loadActiveNote() {
+                const activeNote = notes.find(n => n.id === activeNoteId);
+                if (activeNote) {
+                    noteTitleInput.value = activeNote.title;
+                    noteContentEl.innerHTML = activeNote.content;
+                    noteTitleInput.disabled = false;
+                    noteContentEl.contentEditable = "true";
+                } else {
+                    noteTitleInput.value = '';
+                    noteContentEl.innerHTML = '';
+                    noteTitleInput.disabled = true;
+                    noteContentEl.contentEditable = "false";
+                }
+            }
+
+            function updateActiveNote() {
+                const activeNote = notes.find(n => n.id === activeNoteId);
+                if (activeNote) {
+                    activeNote.title = noteTitleInput.value;
+                    activeNote.content = noteContentEl.innerHTML;
+                    activeNote.timestamp = Date.now();
+                    saveToStorage();
+                }
+            }
+
+            function deleteActiveNote() {
+                if (!activeNoteId) return;
+                notes = notes.filter(n => n.id !== activeNoteId);
+                activeNoteId = notes.length > 0 ? notes[0].id : null;
+                saveToStorage();
+                
+                if (activeNoteId) {
+                    loadActiveNote();
+                } else {
+                    createNewNote(); 
+                }
+            }
+
+            function extractText(html) {
+                const tmp = document.createElement('div');
+                tmp.innerHTML = html;
+                return tmp.textContent || tmp.innerText || '';
+            }
+
+            function renderNotesList() {
+                notesListEl.innerHTML = '';
+                const sortedNotes = [...notes].sort((a, b) => b.timestamp - a.timestamp);
+
+                sortedNotes.forEach(note => {
+                    const li = document.createElement('li');
+                    li.className = note.id === activeNoteId ? 'active' : '';
+                    
+                    const titleText = note.title.trim() || 'Untitled';
+                    const previewText = extractText(note.content).trim() || 'Empty note';
+
+                    // Build item structure tracking selected state for bulk operations
+                    const isChecked = selectedNotesMap[note.id] ? 'checked' : '';
+                    li.innerHTML = `
+                        <input type="checkbox" class="note-checkbox" data-id="${note.id}" ${isChecked}>
+                        <div class="note-item-info">
+                            <div class="note-item-title">${titleText}</div>
+                            <div class="note-item-preview">${previewText}</div>
+                        </div>
+                    `;
+                    
+                    // Route interaction depending on mode
+                    li.addEventListener('click', (e) => {
+                        const checkbox = li.querySelector('.note-checkbox');
+                        if (isBulkMode) {
+                            // Toggle checkbox if click was anywhere on row
+                            if (e.target !== checkbox) {
+                                checkbox.checked = !checkbox.checked;
+                            }
+                            selectedNotesMap[note.id] = checkbox.checked;
+                        } else {
+                            if (e.target === checkbox) return;
+                            activeNoteId = note.id;
+                            renderNotesList();
+                            loadActiveNote();
+                        }
+                    });
+                    
+                    notesListEl.appendChild(li);
+                });
+            }
+
+            // --- HTML to Markdown Conversion Parsing ---
+            function convertHtmlToMarkdown(html) {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+
+                // Elements translations
+                tempDiv.querySelectorAll('a').forEach(a => a.replaceWith(`[${a.textContent}](${a.getAttribute('href') || '#'})`));
+                tempDiv.querySelectorAll('b, strong').forEach(b => b.replaceWith(`**${b.textContent}**`));
+                tempDiv.querySelectorAll('i, em').forEach(i => i.replaceWith(`*${i.textContent}*`));
+                tempDiv.querySelectorAll('strike, s, del').forEach(s => s.replaceWith(`~~${s.textContent}~~`));
+                tempDiv.querySelectorAll('code').forEach(c => c.replaceWith(`\`${c.textContent}\``));
+                tempDiv.querySelectorAll('h1').forEach(h => h.replaceWith(`\n# ${h.textContent}\n`));
+                tempDiv.querySelectorAll('h2').forEach(h => h.replaceWith(`\n## ${h.textContent}\n`));
+                tempDiv.querySelectorAll('h3').forEach(h => h.replaceWith(`\n### ${h.textContent}\n`));
+                tempDiv.querySelectorAll('blockquote').forEach(q => q.replaceWith(`\n> ${q.textContent}\n`));
+
+                tempDiv.querySelectorAll('ul').forEach(ul => {
+                    ul.querySelectorAll('li').forEach(li => li.innerHTML = `- ${li.textContent}`);
+                });
+                tempDiv.querySelectorAll('ol').forEach(ol => {
+                    let idx = 1;
+                    ol.querySelectorAll('li').forEach(li => li.innerHTML = `${idx++}. ${li.textContent}`);
+                });
+
+                // Clear structural wrapping tags gracefully adding trailing spacing
+                let markdown = tempDiv.innerHTML
+                    .replace(/<li[^>]*>/g, '')
+                    .replace(/<\/li>/g, '\n')
+                    .replace(/<ul[^>]*>|<\/ul>|<ol[^>]*>|<\/ol>/g, '\n')
+                    .replace(/<p[^>]*>/g, '')
+                    .replace(/<\/p>/g, '\n\n')
+                    .replace(/<div[^>]*>/g, '')
+                    .replace(/<\/div>/g, '\n')
+                    .replace(/<br\s*\/?>/g, '\n');
+
+                // Sanitize HTML entity conversions safely
+                const decoder = document.createElement('textarea');
+                decoder.innerHTML = markdown;
+                markdown = decoder.value;
+
+                return markdown.replace(/\n{3,}/g, '\n\n').trim();
+            }
+
+            function downloadMarkdownFile(title, htmlContent) {
+                const markdownText = convertHtmlToMarkdown(htmlContent);
+                const filename = (title.trim() || 'Untitled') + '.md';
+                const blob = new Blob([markdownText], { type: 'text/markdown;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.setAttribute('download', filename);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+
+            // --- Bulk Export Action Management ---
+            function triggerBulkExport() {
+                const targetIds = Object.keys(selectedNotesMap).filter(id => selectedNotesMap[id]);
+                if (targetIds.length === 0) {
+                    alert('Please select at least one note to export.');
+                    return;
+                }
+
+                // Execute downloads sequentially with a small delay to bypass browser blocking defenses
+                targetIds.forEach((id, index) => {
+                    const targetNote = notes.find(n => n.id === id);
+                    if (targetNote) {
+                        setTimeout(() => {
+                            downloadMarkdownFile(targetNote.title, targetNote.content);
+                        }, index * 150);
+                    }
+                });
+
+                exitBulkMode();
+            }
+
+            function enterBulkMode() {
+                isBulkMode = true;
+                selectedNotesMap = {};
+                sidebar.classList.add('bulk-mode');
+                renderNotesList();
+            }
+
+            function exitBulkMode() {
+                isBulkMode = false;
+                selectedNotesMap = {};
+                sidebar.classList.remove('bulk-mode');
+                renderNotesList();
+            }
+
+            // --- Event Listeners ---
+            toggleSidebarBtn.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
+            addNoteBtn.addEventListener('click', createNewNote);
+            deleteNoteBtn.addEventListener('click', deleteActiveNote);
+            
+            noteTitleInput.addEventListener('input', updateActiveNote);
+            noteContentEl.addEventListener('input', updateActiveNote);
+
+            // Export Actions wiring
+            exportSingleBtn.addEventListener('click', () => {
+                const activeNote = notes.find(n => n.id === activeNoteId);
+                if (activeNote) downloadMarkdownFile(activeNote.title, activeNote.content);
+            });
+
+            bulkModeBtn.addEventListener('click', () => {
+                if (isBulkMode) exitBulkMode(); else enterBulkMode();
+            });
+            cancelBulkBtn.addEventListener('click', exitBulkMode);
+            exportSelectedBtn.addEventListener('click', triggerBulkExport);
+
+            // Rich Text Formatting Logic
+            formatBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const command = btn.getAttribute('data-command');
+                    let value = btn.getAttribute('data-value') || null;
+
+                    if (command === 'createLink') {
+                        const url = prompt('Enter link URL:');
+                        if (!url) return;
+                        value = url;
+                    }
+
+                    if (btn.getAttribute('data-is-code')) {
+                        const selection = window.getSelection();
+                        if (!selection.toString()) return; // Prevent wrapping an empty selection
+                        value = `<code>${selection.toString()}</code>`;
+                    }
+
+                    // Toggle logic for Blockquotes and Headings
+                    if (command === 'formatBlock') {
+                        const currentFormat = document.queryCommandValue('formatBlock');
+                        if (currentFormat && currentFormat.toLowerCase() === value.toLowerCase()) {
+                            value = 'DIV'; 
+                        }
+                    }
+
+                    document.execCommand(command, false, value);
+                    updateActiveNote();
+                    noteContentEl.focus();
+                });
+            });
+
+            // Prevent layout pollution when pasting external content
+            noteContentEl.addEventListener("paste", function(e) {
+                e.preventDefault();
+                const text = (e.originalEvent || e).clipboardData.getData('text/plain');
+                document.execCommand('insertText', false, text);
+            });
+
+            // Keyboard Shortcuts (Enter breakout & Tab indents)
+            noteContentEl.addEventListener('keydown', (e) => {
+                // 1. Break out of blockquote when pressing Enter on an empty line
+                if (e.key === 'Enter') {
+                    const currentFormat = document.queryCommandValue('formatBlock');
+                    if (currentFormat === 'blockquote') {
+                        const selection = window.getSelection();
+                        if (selection.anchorNode && selection.anchorNode.textContent.trim() === '') {
+                            e.preventDefault(); 
+                            document.execCommand('formatBlock', false, 'DIV'); 
+                            return;
+                        }
+                    }
+                }
+
+                // 2. Create sub-bullets using Tab and Shift+Tab
+                if (e.key === 'Tab') {
+                    e.preventDefault();
+                    if (e.shiftKey) {
+                        document.execCommand('outdent', false, null);
+                    } else {
+                        document.execCommand('indent', false, null);
+                    }
+                }
+            });
+
+            init();
+        });
+    </script>
+</body>
+</html>
