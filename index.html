@@ -92,11 +92,21 @@
 
         .editor-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 
-        .format-toolbar { display: flex; gap: 4px; padding: 8px 16px; border-bottom: 1px solid var(--border-color); background-color: var(--bg-body); align-items: center; }
-        .format-toolbar .icon-btn { width: 28px; height: 28px; color: var(--text-secondary); }
+        .format-toolbar {
+            display: flex; gap: 6px; padding: 8px 16px; border-bottom: 1px solid var(--border-color);
+            background-color: var(--bg-body); align-items: center;
+        }
+        .format-toolbar .icon-btn {
+            width: 38px; height: 38px; color: var(--text-secondary);
+        }
         .format-toolbar .icon-btn:hover { color: var(--text-primary); background-color: var(--item-hover); }
         .format-toolbar .icon-btn.active { color: var(--accent); background-color: var(--item-active); }
-        .format-toolbar .icon-btn svg { width: 14px; height: 14px; }
+        .format-toolbar .icon-btn svg { width: 18px; height: 18px; }
+
+        .editor-header .icon-btn { width: 36px; height: 36px; }
+        .editor-header .icon-btn svg { width: 18px; height: 18px; }
+        .sidebar-header .icon-btn { width: 36px; height: 36px; }
+        .sidebar-header .icon-btn svg { width: 18px; height: 18px; }
 
         .tag-dropdown-container { position: relative; display: inline-block; }
         .tag-dropdown {
@@ -138,7 +148,6 @@
         .icon-btn:hover { background-color: var(--item-hover); }
         .icon-btn svg { width: 16px; height: 16px; stroke-width: 1.5; }
 
-        /* Link Popup */
         .link-popup {
             position: absolute;
             z-index: 200;
@@ -358,6 +367,9 @@
             let syncTimeoutId = null;
             let unsubscribeSnapshot = null;
             let lastKeyWasEnter = false;
+
+            // Saved selection for link insertion
+            let savedRange = null;
 
             // ---------- Tags Logic ----------
             tagMenuBtn.addEventListener('click', (e) => {
@@ -742,7 +754,7 @@
 
             // Formatting toolbar (except link, handled separately)
             formatBtns.forEach(btn => {
-                if (btn.getAttribute('data-command') === 'createLink') return; // Handled below
+                if (btn.getAttribute('data-command') === 'createLink') return;
                 btn.addEventListener('click', (e) => {
                     e.preventDefault();
                     const command = btn.getAttribute('data-command');
@@ -762,11 +774,36 @@
                 });
             });
 
-            // ---------- Custom Link Popup ----------
-            function showLinkPopup() {
+            // ---------- Custom Link Popup (Fixed) ----------
+            function saveCurrentSelection() {
                 const sel = window.getSelection();
-                const selectedText = sel.toString();
-                linkTextInput.value = selectedText || '';
+                if (sel.rangeCount > 0 && noteContentEl.contains(sel.anchorNode)) {
+                    savedRange = sel.getRangeAt(0).cloneRange();
+                } else {
+                    savedRange = null;
+                }
+            }
+
+            function restoreSelection() {
+                if (savedRange) {
+                    const sel = window.getSelection();
+                    sel.removeAllRanges();
+                    sel.addRange(savedRange);
+                } else {
+                    // Fallback: focus editor
+                    noteContentEl.focus();
+                }
+            }
+
+            function showLinkPopup() {
+                saveCurrentSelection(); // save the current editor selection
+                const sel = window.getSelection();
+                // Pre-fill text with any selected text in the editor
+                if (savedRange && !savedRange.collapsed) {
+                    linkTextInput.value = savedRange.toString();
+                } else {
+                    linkTextInput.value = '';
+                }
                 linkUrlInput.value = '';
                 // Position near the link button
                 const linkBtn = document.querySelector('[data-command="createLink"]');
@@ -774,7 +811,7 @@
                 linkPopup.style.top = (rect.bottom + 8) + 'px';
                 linkPopup.style.left = (rect.left) + 'px';
                 linkPopup.classList.add('visible');
-                linkTextInput.focus();
+                setTimeout(() => linkTextInput.focus(), 50);
             }
 
             function hideLinkPopup() {
@@ -789,13 +826,13 @@
                     return;
                 }
 
+                // Restore the saved editor selection
+                restoreSelection();
                 const sel = window.getSelection();
                 if (sel.rangeCount) {
                     const range = sel.getRangeAt(0);
-                    // If there's a selection, remove it and insert new link
-                    if (!range.collapsed) {
-                        range.deleteContents();
-                    }
+                    // If there's a selection, delete it and insert new link
+                    range.deleteContents();
                     const link = document.createElement('a');
                     link.href = url;
                     link.textContent = text;
@@ -806,14 +843,16 @@
                     sel.removeAllRanges();
                     sel.addRange(range);
                 } else {
-                    // Fallback: insert at end
+                    // Fallback: insert HTML
                     noteContentEl.focus();
                     document.execCommand('insertHTML', false, `<a href="${url}">${text}</a>`);
                 }
                 updateActiveNote();
                 hideLinkPopup();
+                noteContentEl.focus();
             }
 
+            // Link button click
             document.querySelector('[data-command="createLink"]').addEventListener('click', (e) => {
                 e.preventDefault();
                 if (linkPopup.classList.contains('visible')) {
@@ -826,19 +865,23 @@
             insertLinkBtn.addEventListener('click', insertLink);
             cancelLinkBtn.addEventListener('click', hideLinkPopup);
 
-            // Hide popup when clicking outside
             document.addEventListener('click', (e) => {
-                if (!e.target.closest('#link-popup') && !e.target.closest('[data-command="createLink"]')) {
+                if (linkPopup.classList.contains('visible') && !e.target.closest('#link-popup') && !e.target.closest('[data-command="createLink"]')) {
                     hideLinkPopup();
                 }
             });
 
-            // Allow Enter key in link popup to submit
-            linkUrlInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') insertLink();
-            });
             linkTextInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') linkUrlInput.focus();
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    linkUrlInput.focus();
+                }
+            });
+            linkUrlInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    insertLink();
+                }
             });
 
             // ---------- Blockquote Helpers & Keyboard ----------
@@ -927,7 +970,7 @@
             });
 
             init();
-            updateToolbarState(); // initial state
+            updateToolbarState();
         });
     </script>
 </body>
