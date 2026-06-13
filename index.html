@@ -181,7 +181,7 @@
             border-top: 1px solid var(--border-color);
         }
 
-        .bulk-mode ~ .auth-footer { display: none; } /* Hide auth when bulk mode is active */
+        .bulk-mode ~ .auth-footer { display: none; }
 
         .auth-btn {
             width: 100%;
@@ -343,7 +343,7 @@
             </div>
 
             <div class="auth-footer">
-                <button id="login-btn" class="auth-btn">Login to Firebase</button>
+                <button id="login-btn" class="auth-btn">Login to Sync</button>
             </div>
         </aside>
 
@@ -414,8 +414,9 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // Your provided Firebase configuration
+        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAKLsyLuK6q8dgnj5TqyjE-OjxaifDjHCk",
             authDomain: "notepad-eac9c.firebaseapp.com",
@@ -428,6 +429,7 @@
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const db = getFirestore(app);
 
         document.addEventListener('DOMContentLoaded', () => {
             const sidebar = document.getElementById('sidebar');
@@ -439,7 +441,6 @@
             const noteContentEl = document.getElementById('note-content');
             const formatBtns = document.querySelectorAll('.format-btn');
             
-            // UI Actions
             const exportSingleBtn = document.getElementById('export-single-btn');
             const bulkModeBtn = document.getElementById('bulk-mode-btn');
             const cancelBulkBtn = document.getElementById('cancel-bulk-btn');
@@ -450,8 +451,56 @@
             let activeNoteId = null;
             let isBulkMode = false;
             let selectedNotesMap = {};
+            let syncTimeoutId = null;
 
-            // --- Firebase Auth Logic ---
+            // --- Firebase Cloud Sync Logic ---
+            function debouncedCloudSave(note) {
+                if (!auth.currentUser) return; 
+                
+                clearTimeout(syncTimeoutId);
+                syncTimeoutId = setTimeout(async () => {
+                    try {
+                        const noteRef = doc(db, "users", auth.currentUser.uid, "notes", note.id);
+                        await setDoc(noteRef, note);
+                        console.log("Auto-saved to cloud");
+                    } catch (e) {
+                        console.error("Error saving to cloud:", e);
+                    }
+                }, 1000); 
+            }
+
+            async function fetchFromCloud() {
+                if (!auth.currentUser) return;
+                try {
+                    const querySnapshot = await getDocs(collection(db, "users", auth.currentUser.uid, "notes"));
+                    const cloudNotes = [];
+                    querySnapshot.forEach((doc) => {
+                        cloudNotes.push(doc.data());
+                    });
+
+                    if (cloudNotes.length > 0) {
+                        // Sort by newest and update local storage
+                        notes = cloudNotes.sort((a, b) => b.timestamp - a.timestamp);
+                        localStorage.setItem('win11_richtext_notes', JSON.stringify(notes));
+                        activeNoteId = notes[0].id;
+                        renderNotesList();
+                        loadActiveNote();
+                    }
+                } catch (e) {
+                    console.error("Error fetching from cloud:", e);
+                }
+            }
+
+            async function deleteFromCloud(noteId) {
+                if (!auth.currentUser) return;
+                try {
+                    await deleteDoc(doc(db, "users", auth.currentUser.uid, "notes", noteId));
+                } catch (e) {
+                    console.error("Error deleting from cloud:", e);
+                }
+            }
+
+            // --- Authentication Actions ---
             loginBtn.addEventListener('click', async () => {
                 if (auth.currentUser) {
                     alert("Already logged in as: " + auth.currentUser.email);
@@ -462,8 +511,7 @@
                 if (email && password) {
                     try {
                         await signInWithEmailAndPassword(auth, email, password);
-                        alert("Logged in successfully!");
-                        loginBtn.textContent = "Synced with Cloud";
+                        alert("Logged in successfully! Pulling notes...");
                     } catch (error) {
                         alert("Login failed: " + error.message);
                     }
@@ -474,6 +522,7 @@
                 if (user) {
                     loginBtn.textContent = "Synced with Cloud";
                     loginBtn.style.color = "#4cc2ff";
+                    fetchFromCloud(); 
                 }
             });
 
@@ -491,6 +540,11 @@
             function saveToStorage() {
                 localStorage.setItem('win11_richtext_notes', JSON.stringify(notes));
                 renderNotesList();
+                
+                const activeNote = notes.find(n => n.id === activeNoteId);
+                if (activeNote) {
+                    debouncedCloudSave(activeNote);
+                }
             }
 
             function createNewNote() {
@@ -534,6 +588,9 @@
 
             function deleteActiveNote() {
                 if (!activeNoteId) return;
+                
+                deleteFromCloud(activeNoteId);
+                
                 notes = notes.filter(n => n.id !== activeNoteId);
                 activeNoteId = notes.length > 0 ? notes[0].id : null;
                 saveToStorage();
@@ -635,7 +692,7 @@
                 document.body.removeChild(link);
             }
 
-            // --- Bulk Export Action ---
+            // --- Bulk Export Logic ---
             function triggerBulkExport() {
                 const targetIds = Object.keys(selectedNotesMap).filter(id => selectedNotesMap[id]);
                 if (targetIds.length === 0) return alert('Please select at least one note to export.');
@@ -675,7 +732,7 @@
             cancelBulkBtn.addEventListener('click', exitBulkMode);
             exportSelectedBtn.addEventListener('click', triggerBulkExport);
 
-            // Rich Text Formatting Logic
+            // Rich Text Formatting Tools
             formatBtns.forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     e.preventDefault();
@@ -709,9 +766,8 @@
                 document.execCommand('insertText', false, text);
             });
 
-            // --- Keydown Logic (Enter & Tab Fixes) ---
+            // Keyboard Shortcuts (Enter / Tab Fixes)
             noteContentEl.addEventListener('keydown', (e) => {
-                // 1. Improved Enter Logic for Blockquote
                 if (e.key === 'Enter') {
                     const currentFormat = document.queryCommandValue('formatBlock');
                     if (currentFormat === 'blockquote') {
@@ -729,7 +785,6 @@
                     }
                 }
 
-                // 2. Tab logic for Lists
                 if (e.key === 'Tab') {
                     e.preventDefault();
                     if (e.shiftKey) {
