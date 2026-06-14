@@ -47,7 +47,6 @@
             -webkit-font-smoothing: antialiased;
             user-select: none;
             background-color: var(--bg-body);
-            /* Subtle radial glow to give depth to the dark background */
             background-image: radial-gradient(circle at 50% 30%, #111116 0%, var(--bg-body) 70%);
         }
 
@@ -56,7 +55,6 @@
             height: 100%; 
         }
 
-        /* Sleek dark scrollbars */
         ::-webkit-scrollbar { width: 10px; height: 10px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { 
@@ -66,7 +64,6 @@
         }
         ::-webkit-scrollbar-thumb:hover { background-color: #444; }
 
-        /* Sidebar */
         .sidebar {
             width: 280px;
             background-color: var(--bg-sidebar);
@@ -151,7 +148,6 @@
             border-color: var(--border-highlight); 
         }
         
-        /* High Contrast Log Out Button */
         #logout-btn { 
             width: 36px; height: 36px; flex-shrink: 0; 
             background: var(--danger-bg); 
@@ -166,7 +162,6 @@
             border-color: var(--danger); 
         }
 
-        /* Main Container */
         .editor-container { 
             flex: 1; display: flex; flex-direction: column; min-width: 0; 
             background-color: transparent; 
@@ -185,7 +180,6 @@
         }
         #note-title::placeholder { color: var(--text-secondary); }
 
-        /* Delete Button in Header - Danger Red */
         #delete-note-btn {
             color: var(--danger);
             border: 1px solid transparent;
@@ -196,7 +190,6 @@
             color: #ff5e54;
         }
 
-        /* Centralized Editor Area */
         .editor-body { 
             flex: 1; 
             display: flex; 
@@ -221,7 +214,6 @@
             margin-bottom: 60px; 
         }
 
-        /* Custom edge resizers */
         .card-resizer {
             position: absolute;
             top: 0; 
@@ -242,18 +234,12 @@
         .format-toolbar {
             display: flex; gap: 6px; padding: 12px 24px; border-bottom: 1px solid var(--border-color);
             align-items: center;
-            
-            /* Sticky Positioning perfectly flush to top edge */
             position: sticky;
             top: 0;
             z-index: 40;
-            
-            /* Frosted glass so text elegantly blurs underneath */
             background-color: rgba(18, 18, 18, 0.85);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            
-            /* Hugs the outer container's rounded corners */
             border-top-left-radius: 11px; 
             border-top-right-radius: 11px;
         }
@@ -271,12 +257,12 @@
         .icon-btn.active { 
             color: var(--accent); 
             background-color: var(--accent-bg); 
+            border: 1px solid var(--accent);
         }
         .icon-btn svg { width: 16px; height: 16px; stroke-width: 1.7; }
 
         .tag-dropdown-container { position: relative; display: inline-block; margin-left: auto; }
         
-        /* Dark Theme Popups */
         .tag-dropdown, .link-popup, .image-popup {
             position: absolute; 
             background: #141414;
@@ -365,7 +351,6 @@
             font-size: 13.5px; border: 1px solid var(--border-color); 
         }
 
-        /* Image resizing wrapper */
         .img-resize-container {
             position: relative;
             display: inline-block;
@@ -431,7 +416,6 @@
         }
         .image-upload-row label:hover { background: #222; border-color: var(--border-highlight); }
 
-        /* Rubberband selection overlay */
         #selection-overlay {
             position: absolute;
             border: 1px solid rgba(24, 119, 242, 0.5);
@@ -442,7 +426,6 @@
             border-radius: 4px;
         }
 
-        /* Keyboard Shortcuts Modal */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -500,6 +483,11 @@
             <div class="sidebar-header">
                 <h2>Notes</h2>
                 <div class="sidebar-header-actions">
+                    <button id="link-folder-btn" class="icon-btn" title="Link Folder for Live Edit">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                    </button>
                     <button id="add-note-btn" class="icon-btn">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -554,7 +542,7 @@
 
                 <button id="export-single-btn" class="icon-btn">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <path d="M21 15v4a2 2 0 0 1-2-2H5a2 2 0 0 1-2-2v-4"></path>
                         <polyline points="7 10 12 5 17 10"></polyline>
                         <line x1="12" y1="5" x2="12" y2="17"></line>
                     </svg>
@@ -690,6 +678,7 @@
             const addNoteBtn = document.getElementById('add-note-btn');
             const deleteNoteBtn = document.getElementById('delete-note-btn');
             const exportSingleBtn = document.getElementById('export-single-btn');
+            const linkFolderBtn = document.getElementById('link-folder-btn');
             const noteTitleInput = document.getElementById('note-title');
             const noteContentEl = document.getElementById('note-content');
             const formatBtns = document.querySelectorAll('.format-btn');
@@ -743,6 +732,10 @@
             let unsubscribeSnapshot = null;
             let lastKeyWasEnter = false;
             let savedRange = null;
+
+            // Live Save State
+            let localFolderHandle = null;
+            let localSaveTimeout = null;
 
             // ---------- Keyboard Shortcuts System ----------
             const shortcutActions = [
@@ -839,13 +832,11 @@
             });
 
             document.addEventListener('keydown', (e) => {
-                // Handling recording new shortcut
                 if (recordingActionId) {
                     e.preventDefault();
                     e.stopPropagation();
-                    if (['Control', 'Alt', 'Shift', 'Meta'].includes(e.key)) return; // Wait for final key
+                    if (['Control', 'Alt', 'Shift', 'Meta'].includes(e.key)) return; 
                     
-                    // Force modifier usage to prevent overriding basic typing (unless it's a function key like backspace, but let's strictly require modifiers for safety)
                     if (!e.ctrlKey && !e.metaKey && !e.altKey) {
                         alert('Shortcuts must include a modifier key (Ctrl, Cmd, or Alt) so you can still type normally!');
                         recordingActionId = null;
@@ -866,10 +857,7 @@
                     return;
                 }
 
-                // Handling execution of shortcuts
-                if (shortcutsModal.classList.contains('visible')) return; // Disabled while modal is open
-                
-                // Allow normal typing in input fields unless modifier is pressed
+                if (shortcutsModal.classList.contains('visible')) return; 
                 if (document.activeElement.tagName === 'INPUT' && !e.ctrlKey && !e.metaKey) return; 
 
                 for (const action of shortcutActions) {
@@ -893,8 +881,7 @@
                         return;
                     }
                 }
-            }, true); // Capture phase
-
+            }, true); 
 
             // ---------- Editor Card Resizing Logic ----------
             const savedCardWidth = localStorage.getItem('win11_richtext_editor_width');
@@ -923,11 +910,10 @@
                 if (cardResizeState) {
                     const deltaX = e.clientX - cardResizeState.startX;
                     const widthChange = cardResizeState.isLeft ? -deltaX : deltaX;
-                    // Multiply by 2 because the card is centered
                     let newWidth = cardResizeState.startWidth + (widthChange * 2);
                     
-                    newWidth = Math.max(400, newWidth); // Minimum width constraint
-                    newWidth = Math.min(window.innerWidth - 60, newWidth); // Keep inside window
+                    newWidth = Math.max(400, newWidth); 
+                    newWidth = Math.min(window.innerWidth - 60, newWidth); 
                     
                     editorCard.style.maxWidth = newWidth + 'px';
                 }
@@ -1025,6 +1011,7 @@
                         if (isApplied) activeNote.tags = activeNote.tags.filter(t => t !== tag);
                         else activeNote.tags.push(tag);
                         saveToStorage(); 
+                        updateActiveNote(); // Trigger local file sync
                         renderTagDropdown(); 
                     });
                     li.querySelector('.delete-tag-btn').addEventListener('click', async (e) => {
@@ -1036,6 +1023,7 @@
                                 if (n.tags && n.tags.includes(tag)) {
                                     n.tags = n.tags.filter(t => t !== tag);
                                     debouncedCloudSave(n, 0); 
+                                    saveNoteToLocal(n); // Ensure local folder reflects deleted tags
                                 }
                             });
                             saveToStorage();
@@ -1151,6 +1139,69 @@
                 }
             });
 
+            // ---------- Link Local Folder (Live Editing) ----------
+            linkFolderBtn.addEventListener('click', async () => {
+                try {
+                    localFolderHandle = await window.showDirectoryPicker({ mode: 'readwrite', id: 'notepad_live_sync' });
+                    linkFolderBtn.classList.add('active');
+                    linkFolderBtn.title = "Folder Linked (Live Saving is Active)";
+                    
+                    // Force a save of the currently active note to the folder right away
+                    const activeNote = notes.find(n => n.id === activeNoteId);
+                    if (activeNote) {
+                        saveNoteToLocal(activeNote);
+                    }
+                    alert("Folder linked successfully! Changes will now save directly to this folder.");
+                } catch (e) {
+                    if (e.name !== 'AbortError') {
+                        console.error('Error linking folder:', e);
+                        alert("Could not link folder. Ensure your browser supports the File System Access API.");
+                    }
+                }
+            });
+
+            async function saveNoteToLocal(note) {
+                if (!localFolderHandle) return;
+                
+                try {
+                    // Create safe filename
+                    const safeTitle = (note.title.trim() || 'Untitled').replace(/[/\\?%*:|"<>]/g, '-');
+                    const newFilename = `${safeTitle}.md`;
+
+                    // Handle renaming: if the filename changed since last save, delete the old file
+                    if (note.localFilename && note.localFilename !== newFilename) {
+                        try {
+                            await localFolderHandle.removeEntry(note.localFilename);
+                        } catch (e) {
+                            console.warn("Could not delete old file (it might already be deleted or renamed outside the app).");
+                        }
+                    }
+                    
+                    // Keep track of the current active filename inside the note object
+                    note.localFilename = newFilename;
+
+                    // Generate markdown
+                    const mdContent = convertHtmlToMarkdown(note.content);
+                    let finalExportText = mdContent;
+                    
+                    if (note.tags && note.tags.length > 0) {
+                        const yamlTags = note.tags.map(tag => `  - ${tag}`).join('\n');
+                        finalExportText = `---\ntags:\n${yamlTags}\n---\n\n` + mdContent;
+                    }
+
+                    // Save file
+                    const fileHandle = await localFolderHandle.getFileHandle(newFilename, { create: true });
+                    const writable = await fileHandle.createWritable();
+                    await writable.write(finalExportText);
+                    await writable.close();
+                    
+                    console.log(`Live saved: ${newFilename}`);
+                } catch (err) {
+                    console.error("Local save failed", err);
+                }
+            }
+
+
             // ---------- Core Note Functions ----------
             function init() {
                 updateTooltips();
@@ -1172,7 +1223,7 @@
             }
 
             function createNewNote() {
-                const newNote = { id: Date.now().toString(), title: '', content: '', timestamp: Date.now(), tags: [] };
+                const newNote = { id: Date.now().toString(), title: '', content: '', timestamp: Date.now(), tags: [], localFilename: null };
                 notes.unshift(newNote);
                 activeNoteId = newNote.id;
                 selectedIds = new Set([activeNoteId]);
@@ -1204,6 +1255,12 @@
                     activeNote.content = noteContentEl.innerHTML;
                     activeNote.timestamp = Date.now();
                     saveToStorage();
+
+                    // Trigger Live Save to local folder if linked
+                    clearTimeout(localSaveTimeout);
+                    localSaveTimeout = setTimeout(() => {
+                        saveNoteToLocal(activeNote);
+                    }, 1000); 
                 }
             }
 
@@ -1212,7 +1269,18 @@
             }
 
             function deleteNotes(ids) {
-                ids.forEach(id => deleteFromCloud(id));
+                ids.forEach(async id => {
+                    const noteToDelete = notes.find(n => n.id === id);
+                    deleteFromCloud(id);
+                    
+                    // Remove from local linked folder if active
+                    if (localFolderHandle && noteToDelete && noteToDelete.localFilename) {
+                        try {
+                            await localFolderHandle.removeEntry(noteToDelete.localFilename);
+                        } catch (e) { console.warn("Failed to delete local file", e); }
+                    }
+                });
+                
                 notes = notes.filter(n => !ids.includes(n.id));
                 ids.forEach(id => selectedIds.delete(id));
                 if (ids.includes(activeNoteId)) {
@@ -1259,7 +1327,7 @@
                 });
             }
 
-            // ---------- Export ----------
+            // ---------- Export / Conversion ----------
             function convertHtmlToMarkdown(html) {
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = html;
@@ -1312,38 +1380,51 @@
                 return markdown.replace(/\n{3,}/g, '\n\n').trim();
             }
 
-            function downloadMarkdownFile(title, htmlContent, tagsArray = []) {
-                const markdownText = convertHtmlToMarkdown(htmlContent);
-                const filename = (title.trim() || 'Untitled') + '.md';
-                let finalExportText = markdownText;
-                if (tagsArray && tagsArray.length > 0) {
-                    const yamlTags = tagsArray.map(tag => `  - ${tag}`).join('\n');
-                    const frontmatter = `---\ntags:\n${yamlTags}\n---\n\n`;
-                    finalExportText = frontmatter + markdownText;
-                }
-                const blob = new Blob([finalExportText], { type: 'text/markdown;charset=utf-8;' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.setAttribute('download', filename);
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            }
-
-            function triggerBulkExport() {
+            // Fallback export if folder isn't linked, or user specifically clicks "Export Selected"
+            async function triggerBulkExport() {
                 const idsToExport = selectedIds.size > 0 ? [...selectedIds] : (activeNoteId ? [activeNoteId] : []);
                 if (idsToExport.length === 0) {
                     alert('No notes selected.');
                     return;
                 }
-                idsToExport.forEach((id, index) => {
+
+                // If they haven't explicitly linked a live folder, prompt for a temporary folder save
+                let targetDirHandle = localFolderHandle;
+                
+                if (!targetDirHandle) {
+                    try {
+                        targetDirHandle = await window.showDirectoryPicker({ mode: 'readwrite', id: 'notepad_manual_export' });
+                    } catch (e) {
+                        return; // User cancelled
+                    }
+                }
+
+                for (const id of idsToExport) {
                     const targetNote = notes.find(n => n.id === id);
                     if (targetNote) {
-                        setTimeout(() => {
-                            downloadMarkdownFile(targetNote.title, targetNote.content, targetNote.tags);
-                        }, index * 150);
+                        try {
+                            const safeTitle = (targetNote.title.trim() || 'Untitled').replace(/[/\\?%*:|"<>]/g, '-');
+                            const filename = `${safeTitle}.md`;
+                            const mdContent = convertHtmlToMarkdown(targetNote.content);
+                            let finalExportText = mdContent;
+                            if (targetNote.tags && targetNote.tags.length > 0) {
+                                const yamlTags = targetNote.tags.map(tag => `  - ${tag}`).join('\n');
+                                finalExportText = `---\ntags:\n${yamlTags}\n---\n\n` + mdContent;
+                            }
+                            const fileHandle = await targetDirHandle.getFileHandle(filename, { create: true });
+                            const writable = await fileHandle.createWritable();
+                            await writable.write(finalExportText);
+                            await writable.close();
+                        } catch (err) {
+                            console.error(`Export failed for ${targetNote.title}`, err);
+                        }
                     }
-                });
+                }
+
+                const btn = document.getElementById('export-single-btn');
+                const originalColor = btn.style.color;
+                btn.style.color = 'var(--accent)';
+                setTimeout(() => btn.style.color = originalColor, 1000);
             }
 
             // ---------- Toolbar Active State ----------
@@ -1492,7 +1573,6 @@
             });
 
             noteTitleInput.addEventListener('input', updateActiveNote);
-            noteContentEl.addEventListener('input', updateActiveNote);
 
             // Export button
             exportSingleBtn.addEventListener('click', triggerBulkExport);
@@ -1872,7 +1952,7 @@
                 e.preventDefault();
                 const text = (e.originalEvent || e).clipboardData.getData('text/plain');
                 document.execCommand('insertText', false, text);
-                setTimeout(enforceTypewriterScroll, 50); // Small delay to let paste render before centering
+                setTimeout(enforceTypewriterScroll, 50); 
             });
 
             init();
