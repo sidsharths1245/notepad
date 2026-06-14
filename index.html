@@ -131,11 +131,22 @@
             background: var(--accent-bg); 
         }
 
+        /* Sticky Action Menu */
+        .sidebar-bottom-actions {
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 16px;
+            background-color: var(--bg-sidebar);
+            border-top: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+
         .auth-footer { 
             padding: 16px; 
             background-color: var(--bg-sidebar); 
             border-top: 1px solid var(--border-color); 
             display: flex; align-items: center; gap: 8px;
+            flex-shrink: 0;
         }
         .auth-btn { 
             flex: 1; padding: 10px; background: transparent; 
@@ -500,6 +511,36 @@
             <ul id="notes-list" class="notes-list"></ul>
             <div id="selection-overlay"></div>
 
+            <div class="sidebar-bottom-actions">
+                <button id="shortcuts-modal-btn" class="icon-btn" title="Edit Keyboard Shortcuts">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
+                        <line x1="6" y1="8" x2="6.01" y2="8"></line>
+                        <line x1="10" y1="8" x2="10.01" y2="8"></line>
+                        <line x1="14" y1="8" x2="14.01" y2="8"></line>
+                        <line x1="18" y1="8" x2="18.01" y2="8"></line>
+                        <line x1="6" y1="12" x2="6.01" y2="12"></line>
+                        <line x1="10" y1="12" x2="10.01" y2="12"></line>
+                        <line x1="14" y1="12" x2="14.01" y2="12"></line>
+                        <line x1="18" y1="12" x2="18.01" y2="12"></line>
+                        <line x1="7" y1="16" x2="17" y2="16"></line>
+                    </svg>
+                </button>
+                <button id="export-single-btn" class="icon-btn" title="Export Selected Notes">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2-2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 5 17 10"></polyline>
+                        <line x1="12" y1="5" x2="12" y2="17"></line>
+                    </svg>
+                </button>
+                <button id="delete-note-btn" class="icon-btn" title="Delete Selected Notes">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                </button>
+            </div>
+
             <div class="auth-footer">
                 <button id="login-btn" class="auth-btn">Login to Sync</button>
                 <button id="logout-btn" title="Logout">
@@ -522,38 +563,6 @@
                     </svg>
                 </button>
                 <input type="text" id="note-title" placeholder="File name" autocomplete="off">
-                
-                <div style="flex: 1"></div>
-                
-                <button id="shortcuts-modal-btn" class="icon-btn" title="Edit Keyboard Shortcuts">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
-                        <line x1="6" y1="8" x2="6.01" y2="8"></line>
-                        <line x1="10" y1="8" x2="10.01" y2="8"></line>
-                        <line x1="14" y1="8" x2="14.01" y2="8"></line>
-                        <line x1="18" y1="8" x2="18.01" y2="8"></line>
-                        <line x1="6" y1="12" x2="6.01" y2="12"></line>
-                        <line x1="10" y1="12" x2="10.01" y2="12"></line>
-                        <line x1="14" y1="12" x2="14.01" y2="12"></line>
-                        <line x1="18" y1="12" x2="18.01" y2="12"></line>
-                        <line x1="7" y1="16" x2="17" y2="16"></line>
-                    </svg>
-                </button>
-
-                <button id="export-single-btn" class="icon-btn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2-2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="7 10 12 5 17 10"></polyline>
-                        <line x1="12" y1="5" x2="12" y2="17"></line>
-                    </svg>
-                </button>
-
-                <button id="delete-note-btn" class="icon-btn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="3 6 5 6 21 6"></polyline>
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                    </svg>
-                </button>
             </header>
             
             <div class="editor-body">
@@ -669,6 +678,50 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+
+        // ---------- IndexedDB Folder Memory ----------
+        const dbName = 'NotepadDB';
+        const storeName = 'handles';
+
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(dbName, 1);
+                request.onupgradeneeded = (e) => e.target.result.createObjectStore(storeName);
+                request.onsuccess = (e) => resolve(e.target.result);
+                request.onerror = (e) => reject(e.target.error);
+            });
+        }
+
+        async function saveFolderHandle(handle) {
+            const db = await initDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(storeName, 'readwrite');
+                tx.objectStore(storeName).put(handle, 'live_folder');
+                tx.oncomplete = () => resolve();
+                tx.onerror = () => reject(tx.error);
+            });
+        }
+
+        async function getFolderHandle() {
+            const db = await initDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(storeName, 'readonly');
+                const request = tx.objectStore(storeName).get('live_folder');
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(tx.error);
+            });
+        }
+
+        async function verifyPermission(fileHandle, readWrite) {
+            const options = { mode: readWrite ? 'readwrite' : 'read' };
+            if ((await fileHandle.queryPermission(options)) === 'granted') {
+                return true;
+            }
+            if ((await fileHandle.requestPermission(options)) === 'granted') {
+                return true;
+            }
+            return false;
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             // DOM elements
@@ -1011,7 +1064,7 @@
                         if (isApplied) activeNote.tags = activeNote.tags.filter(t => t !== tag);
                         else activeNote.tags.push(tag);
                         saveToStorage(); 
-                        updateActiveNote(); // Trigger local file sync
+                        updateActiveNote(); 
                         renderTagDropdown(); 
                     });
                     li.querySelector('.delete-tag-btn').addEventListener('click', async (e) => {
@@ -1023,7 +1076,7 @@
                                 if (n.tags && n.tags.includes(tag)) {
                                     n.tags = n.tags.filter(t => t !== tag);
                                     debouncedCloudSave(n, 0); 
-                                    saveNoteToLocal(n); // Ensure local folder reflects deleted tags
+                                    saveNoteToLocal(n); 
                                 }
                             });
                             saveToStorage();
@@ -1142,15 +1195,30 @@
             // ---------- Link Local Folder (Live Editing) ----------
             linkFolderBtn.addEventListener('click', async () => {
                 try {
+                    if (localFolderHandle) {
+                        const hasPermission = await verifyPermission(localFolderHandle, true);
+                        if (hasPermission) {
+                            linkFolderBtn.classList.add('active');
+                            linkFolderBtn.style.color = ""; 
+                            linkFolderBtn.title = "Folder Linked (Live Saving is Active)";
+                            alert("Folder reconnected successfully!");
+                            
+                            const activeNote = notes.find(n => n.id === activeNoteId);
+                            if (activeNote) saveNoteToLocal(activeNote);
+                            return;
+                        }
+                    }
+                    
                     localFolderHandle = await window.showDirectoryPicker({ mode: 'readwrite', id: 'notepad_live_sync' });
+                    await saveFolderHandle(localFolderHandle);
+                    
                     linkFolderBtn.classList.add('active');
+                    linkFolderBtn.style.color = "";
                     linkFolderBtn.title = "Folder Linked (Live Saving is Active)";
                     
-                    // Force a save of the currently active note to the folder right away
                     const activeNote = notes.find(n => n.id === activeNoteId);
-                    if (activeNote) {
-                        saveNoteToLocal(activeNote);
-                    }
+                    if (activeNote) saveNoteToLocal(activeNote);
+                    
                     alert("Folder linked successfully! Changes will now save directly to this folder.");
                 } catch (e) {
                     if (e.name !== 'AbortError') {
@@ -1160,15 +1228,27 @@
                 }
             });
 
+            async function restoreFolderConnection() {
+                try {
+                    const savedHandle = await getFolderHandle();
+                    if (savedHandle) {
+                        localFolderHandle = savedHandle;
+                        // Visually change the button to show it remembers a folder but needs a click to wake up
+                        linkFolderBtn.style.color = "#ffcc00"; 
+                        linkFolderBtn.title = "Click to reconnect saved folder";
+                    }
+                } catch (e) {
+                    console.error("Could not restore folder handle", e);
+                }
+            }
+
             async function saveNoteToLocal(note) {
                 if (!localFolderHandle) return;
                 
                 try {
-                    // Create safe filename
                     const safeTitle = (note.title.trim() || 'Untitled').replace(/[/\\?%*:|"<>]/g, '-');
                     const newFilename = `${safeTitle}.md`;
 
-                    // Handle renaming: if the filename changed since last save, delete the old file
                     if (note.localFilename && note.localFilename !== newFilename) {
                         try {
                             await localFolderHandle.removeEntry(note.localFilename);
@@ -1177,10 +1257,8 @@
                         }
                     }
                     
-                    // Keep track of the current active filename inside the note object
                     note.localFilename = newFilename;
 
-                    // Generate markdown
                     const mdContent = convertHtmlToMarkdown(note.content);
                     let finalExportText = mdContent;
                     
@@ -1189,7 +1267,6 @@
                         finalExportText = `---\ntags:\n${yamlTags}\n---\n\n` + mdContent;
                     }
 
-                    // Save file
                     const fileHandle = await localFolderHandle.getFileHandle(newFilename, { create: true });
                     const writable = await fileHandle.createWritable();
                     await writable.write(finalExportText);
@@ -1201,10 +1278,49 @@
                 }
             }
 
+            // ---------- Local Folder Watcher (Background Polling) ----------
+            async function watchLocalFolder() {
+                // If no folder is linked, do nothing
+                if (!localFolderHandle) return;
+
+                try {
+                    // Fail gracefully if we don't have permission (e.g., after a refresh before clicking the yellow icon)
+                    if ((await localFolderHandle.queryPermission({mode: 'read'})) !== 'granted') return;
+
+                    // Get a list of all files currently in the OS folder
+                    const existingFiles = new Set();
+                    for await (const entry of localFolderHandle.values()) {
+                        if (entry.kind === 'file') {
+                            existingFiles.add(entry.name);
+                        }
+                    }
+
+                    // Check if any of our tracked notes are missing from the OS folder
+                    const idsToDelete = [];
+                    notes.forEach(note => {
+                        if (note.localFilename && !existingFiles.has(note.localFilename)) {
+                            idsToDelete.push(note.id);
+                        }
+                    });
+
+                    // If files are missing, delete them from the app UI and Firebase
+                    if (idsToDelete.length > 0) {
+                        console.log("Local deletion detected, removing from app:", idsToDelete);
+                        deleteNotes(idsToDelete, true); // Pass 'true' to skip attempting to delete the local file
+                    }
+                } catch (e) {
+                    console.warn("Folder watch error (likely permission lost or folder moved).");
+                }
+            }
+
+            // Start scanning the folder every 3 seconds
+            setInterval(watchLocalFolder, 3000);
+
 
             // ---------- Core Note Functions ----------
             function init() {
                 updateTooltips();
+                restoreFolderConnection();
                 if (notes.length === 0) createNewNote();
                 else {
                     activeNoteId = notes[0].id;
@@ -1256,7 +1372,6 @@
                     activeNote.timestamp = Date.now();
                     saveToStorage();
 
-                    // Trigger Live Save to local folder if linked
                     clearTimeout(localSaveTimeout);
                     localSaveTimeout = setTimeout(() => {
                         saveNoteToLocal(activeNote);
@@ -1268,13 +1383,12 @@
                 return [...notes].sort((a, b) => b.timestamp - a.timestamp);
             }
 
-            function deleteNotes(ids) {
+            function deleteNotes(ids, skipLocalDelete = false) {
                 ids.forEach(async id => {
                     const noteToDelete = notes.find(n => n.id === id);
                     deleteFromCloud(id);
                     
-                    // Remove from local linked folder if active
-                    if (localFolderHandle && noteToDelete && noteToDelete.localFilename) {
+                    if (!skipLocalDelete && localFolderHandle && noteToDelete && noteToDelete.localFilename) {
                         try {
                             await localFolderHandle.removeEntry(noteToDelete.localFilename);
                         } catch (e) { console.warn("Failed to delete local file", e); }
@@ -1388,14 +1502,13 @@
                     return;
                 }
 
-                // If they haven't explicitly linked a live folder, prompt for a temporary folder save
                 let targetDirHandle = localFolderHandle;
                 
                 if (!targetDirHandle) {
                     try {
                         targetDirHandle = await window.showDirectoryPicker({ mode: 'readwrite', id: 'notepad_manual_export' });
                     } catch (e) {
-                        return; // User cancelled
+                        return; 
                     }
                 }
 
