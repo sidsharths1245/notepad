@@ -1446,11 +1446,19 @@
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = html;
 
-                tempDiv.querySelectorAll('.img-resize-container img').forEach(img => {
-                    const alt = img.getAttribute('alt') || '';
-                    const src = img.getAttribute('src') || '';
-                    img.replaceWith(`![${alt}](${src})`);
+                tempDiv.querySelectorAll('.img-resize-container').forEach(container => {
+                    const img = container.querySelector('img');
+                    if (img) {
+                        const alt = img.getAttribute('alt') || '';
+                        const src = img.getAttribute('src') || '';
+                        // Replace the ENTIRE wrapper span, wiping out the resize handle as well
+                        container.replaceWith(`![${alt}](${src})`);
+                    } else {
+                        // Fallback cleanup just in case there's an empty container
+                        container.remove();
+                    }
                 });
+                
                 tempDiv.querySelectorAll('img').forEach(img => {
                     if (img.parentNode) {
                         const alt = img.getAttribute('alt') || '';
